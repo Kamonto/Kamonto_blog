@@ -103,4 +103,4 @@ theme: butterfly
 deploy:
   type: git
   repo: https://github.com/Kamonto/Kamonto_blog.git
-  branch: master
+  branch: gh-pages

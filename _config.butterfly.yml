@@ -12,6 +12,7 @@ nav:
 
 menu:
   首页: / || fas fa-home
+  标签: / || fas fa-tag
   列表||fas fa-list:
     音乐: /music/ || fas fa-music
     电影: /movies/ || fas fa-video

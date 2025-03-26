@@ -20,7 +20,7 @@
     
     
     <entry>
-      <title>link</title>
+      <title>友链</title>
       <link href="/Kamonto_blog/link/index.html"/>
       <url>/Kamonto_blog/link/index.html</url>
       
@@ -31,7 +31,7 @@
     
     
     <entry>
-      <title>tags</title>
+      <title>标签</title>
       <link href="/Kamonto_blog/tags/index.html"/>
       <url>/Kamonto_blog/tags/index.html</url>
       
@@ -42,7 +42,7 @@
     
     
     <entry>
-      <title>about</title>
+      <title>关于</title>
       <link href="/Kamonto_blog/about/index.html"/>
       <url>/Kamonto_blog/about/index.html</url>
       

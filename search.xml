@@ -8,7 +8,7 @@
       <link href="/Kamonto_blog/2025/03/26/Test-Picture/"/>
       <url>/Kamonto_blog/2025/03/26/Test-Picture/</url>
       
-        <content type="html"><![CDATA[<p><img src="http://gitee.com/Kamonto/blog_pictures/raw/master/avatar.jpg"></p>]]></content>
+        <content type="html"><![CDATA[<p><img src="https://github.com/Kamonto/Image-Host/blob/main/img/profile_picture.png"></p>]]></content>
       
       
       
@@ -30,28 +30,6 @@
     
   
   
-    
-    
-    <entry>
-      <title>友链</title>
-      <link href="/Kamonto_blog/link/index.html"/>
-      <url>/Kamonto_blog/link/index.html</url>
-      
-        <content type="html"><![CDATA[]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>标签</title>
-      <link href="/Kamonto_blog/tags/index.html"/>
-      <url>/Kamonto_blog/tags/index.html</url>
-      
-        <content type="html"><![CDATA[]]></content>
-      
-    </entry>
-    
     
     
     <entry>
@@ -77,9 +55,31 @@
     
     
     <entry>
+      <title>标签</title>
+      <link href="/Kamonto_blog/tags/index.html"/>
+      <url>/Kamonto_blog/tags/index.html</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>music</title>
       <link href="/Kamonto_blog/music/index.html"/>
       <url>/Kamonto_blog/music/index.html</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>友链</title>
+      <link href="/Kamonto_blog/link/index.html"/>
+      <url>/Kamonto_blog/link/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
       

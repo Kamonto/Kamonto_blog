@@ -3,11 +3,11 @@
 button#go-up #percent {
     display: none;
     font-weight: bold;
-    font-size: 15px !important;
+    font-size: 75px !important;
 }
 
 button#go-up span {
-    font-size: 12px!important;
+    font-size: 72px!important;
     margin-right: -1px;
 }
 

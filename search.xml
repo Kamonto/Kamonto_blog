@@ -33,9 +33,9 @@
     
     
     <entry>
-      <title>movies</title>
-      <link href="/Kamonto_blog/movies/index.html"/>
-      <url>/Kamonto_blog/movies/index.html</url>
+      <title>music</title>
+      <link href="/Kamonto_blog/music/index.html"/>
+      <url>/Kamonto_blog/music/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
       
@@ -44,9 +44,9 @@
     
     
     <entry>
-      <title>music</title>
-      <link href="/Kamonto_blog/music/index.html"/>
-      <url>/Kamonto_blog/music/index.html</url>
+      <title>友链</title>
+      <link href="/Kamonto_blog/link/index.html"/>
+      <url>/Kamonto_blog/link/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
       
@@ -66,20 +66,9 @@
     
     
     <entry>
-      <title>友链</title>
-      <link href="/Kamonto_blog/link/index.html"/>
-      <url>/Kamonto_blog/link/index.html</url>
-      
-        <content type="html"><![CDATA[]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>标签</title>
-      <link href="/Kamonto_blog/tags/index.html"/>
-      <url>/Kamonto_blog/tags/index.html</url>
+      <title>movies</title>
+      <link href="/Kamonto_blog/movies/index.html"/>
+      <url>/Kamonto_blog/movies/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
       
@@ -91,6 +80,17 @@
       <title>关于</title>
       <link href="/Kamonto_blog/about/index.html"/>
       <url>/Kamonto_blog/about/index.html</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>标签</title>
+      <link href="/Kamonto_blog/tags/index.html"/>
+      <url>/Kamonto_blog/tags/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
       

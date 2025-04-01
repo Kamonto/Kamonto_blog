@@ -33,20 +33,9 @@
     
     
     <entry>
-      <title>music</title>
-      <link href="/Kamonto_blog/music/index.html"/>
-      <url>/Kamonto_blog/music/index.html</url>
-      
-        <content type="html"><![CDATA[]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>友链</title>
-      <link href="/Kamonto_blog/link/index.html"/>
-      <url>/Kamonto_blog/link/index.html</url>
+      <title>关于</title>
+      <link href="/Kamonto_blog/about/index.html"/>
+      <url>/Kamonto_blog/about/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
       
@@ -77,9 +66,20 @@
     
     
     <entry>
-      <title>关于</title>
-      <link href="/Kamonto_blog/about/index.html"/>
-      <url>/Kamonto_blog/about/index.html</url>
+      <title>music</title>
+      <link href="/Kamonto_blog/music/index.html"/>
+      <url>/Kamonto_blog/music/index.html</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>友链</title>
+      <link href="/Kamonto_blog/link/index.html"/>
+      <url>/Kamonto_blog/link/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
       

@@ -8,7 +8,7 @@
       <link href="/Kamonto_blog/2025/06/29/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%20vscode%20%E4%BC%98%E9%9B%85%E5%9C%B0%E5%AE%8C%E6%88%90%20oop%20&amp;%20oo%20%E8%AF%BE%E7%A8%8B/"/>
       <url>/Kamonto_blog/2025/06/29/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%20vscode%20%E4%BC%98%E9%9B%85%E5%9C%B0%E5%AE%8C%E6%88%90%20oop%20&amp;%20oo%20%E8%AF%BE%E7%A8%8B/</url>
       
-        <content type="html"><![CDATA[<blockquote><p>本篇文章基于 Windows 的 vscode 提供，阅读之前请确认是否正确 ~</p></blockquote><h3 id="oop-使用命令行完成-git"><a href="#oop-使用命令行完成-git" class="headerlink" title="oop : 使用命令行完成 git"></a>oop : 使用命令行完成 git</h3><h4 id="下载-git"><a href="#下载-git" class="headerlink" title="下载 git"></a>下载 git</h4><p>首先，我们在<a href="https://git-scm.com/downloads"> git 官网</a>下载 git :</p><p><img src="/Kamonto_blog/%E4%B8%8B%E8%BD%BDgit1.png" alt="Picture Not Found!"></p>]]></content>
+        <content type="html"><![CDATA[<blockquote><p>本篇文章基于 Windows 的 vscode 提供，阅读之前请确认是否正确 ~</p></blockquote><h2 id="oop-使用命令行完成-git"><a href="#oop-使用命令行完成-git" class="headerlink" title="oop : 使用命令行完成 git"></a>oop : 使用命令行完成 git</h2><h3 id="下载-git"><a href="#下载-git" class="headerlink" title="下载 git"></a>下载 git</h3><p>首先，我们在<a href="https://git-scm.com/downloads"> git 官网</a>下载 git ：</p><p><img src="/Kamonto_blog/img/20250629/%E4%B8%8B%E8%BD%BDgit1.png" alt="Picture Not Found!"></p><p><img src="/Kamonto_blog/img/20250629/%E4%B8%8B%E8%BD%BDgit2.png" alt="Picture Not Found!"></p><p>下载之后，我们可以将其放在自己喜欢的位置（比如我喜欢放在 D 盘根目录）：</p><p><img src="/Kamonto_blog/img/20250629/%E5%AE%89%E8%A3%85git1.png" alt="Picture Not Found!"></p><p><img src="/Kamonto_blog/img/20250629/%E5%AE%89%E8%A3%85git2.png" alt="Picture Not Found!"></p><p>点击图片中的 Git-2.46.0-64-bit.exe ，进行安装，安装时一路点击 Next 即可。</p><h3 id="配置-git"><a href="#配置-git" class="headerlink" title="配置 git"></a>配置 git</h3><p>接下来，我们来进行 git 的配置。首先我们在任意文件夹下打开 powershell 终端（比如我现在在写博客的文件夹）：</p><p><img src="/Kamonto_blog/img/20250629/%E6%89%93%E5%BC%80powershell.png" alt="Picture Not Found!"></p><p>接着<strong>依次</strong>输入以下两条指令：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.name <span class="string">&quot;你的昵称&quot;</span></span><br><span class="line">git config --global user.email <span class="string">&quot;你的邮箱&quot;</span></span><br></pre></td></tr></table></figure><p>（要把 <code>你的昵称</code> 和 <code>你的邮箱</code> 换成你的昵称和邮箱，不会有人原封不动写上去吧）</p><p>为了检查是否设置成功，可以输入以下指令进行检查：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global --list</span><br></pre></td></tr></table></figure><p>如果出现类似以下内容，证明昵称和邮箱设置成功：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">user.name=Kamonto</span><br><span class="line">user.email=Kamonto@126.com</span><br><span class="line">http.proxy=http://127.0.0.1:10809</span><br></pre></td></tr></table></figure><p>（这里的值是我的昵称和邮箱，你的值应该是你刚才填的昵称和邮箱）</p><p>这样，我们就完成了 git 的配置。在之后，使用 powershell 或 bash 终端都可以进行 git 指令的操作。</p><p><img src="/Kamonto_blog/img/20250629/powershell%E5%92%8Cbash%E7%BB%88%E7%AB%AF.png" alt="Picture Not Found!"></p><h3 id="配置-SSH-Key"><a href="#配置-SSH-Key" class="headerlink" title="配置 SSH Key"></a>配置 SSH Key</h3><p>在任意目录下的 powershell 或 bash 终端输入如下指令，生成 SSH Key 密钥：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -C <span class="string">&quot;你的邮箱&quot;</span></span><br></pre></td></tr></table></figure><p>在生成时，我们需要输入保存密钥的地址，这里我们选择它推荐的地址即可：</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Generating public/private rsa key pair.</span><br><span class="line">Enter file in which to save the key (/c/Users/24502/.ssh/id_rsa): </span><br></pre></td></tr></table></figure><p>（这里每个人的用户名是不同的，我的用户名是 24502 ）</p><p>这个地址位于家目录下的 .ssh 文件夹，等价于 <code>~/.ssh/id_rsa</code> ，记住这个 <code>~/.ssh</code> 文件夹，过后有用。</p><p>输入地址之后，我们还可以为其设置密码，这里如果直接按回车跳过的话就是不设置密码。顺带一提，我个人是比较喜欢设置密码的。</p><p>这样我们就成功生成了 SSH Key ，下面我们要在 oop 课程的 gitlab 平台添加这个密钥。</p><p>打开 gitlab 平台的任意界面，点击右上角的图像，选择 Edit profile ，进入个人主页，然后就能看到左侧的 SSH Key 选项了。</p><p><img src="/Kamonto_blog/img/20250629/gitlabSSHKey.png" alt="Picture Not Found!"></p><p>在上述界面的 Key 一栏中，我们需要输入我们的<strong>公钥</strong>，这个公钥储存在 <code>~/.ssh/id_rsa.pub</code> 中（如果你刚才将密钥存储在默认位置 <code>~/.ssh/id_rsa</code> 的话；如果不是的话，将你刚才存储密钥的位置后面加上 <code>.pub</code> 即可）。</p><p>我们在终端输入 <code>cat ~/.ssh/id_rsa.pub</code> ，复制输出的全部内容，这个内容的格式应该如下：</p><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh-rsa</span><br><span class="line">AAAAxxxxxxxxxxxxxxxxx...(一堆乱码)= 你的邮箱</span><br></pre></td></tr></table></figure><p>这个就是我们的公钥，我们将其复制到刚才图中界面的 Key 一栏中。对于 Title 一栏，我们可以随便给密钥起个名字，起什么都没有关系。而 Expiration date 是密钥的失效日期，如果你不想在上机实验的时候 git 突然失效，那我劝你把这个日期设远一些，或者设在寒暑假期间。&lt;- 个人惨痛经历</p><p>最后点击下方的 Add key ，我们就可以使用 git 了。</p><h3 id="使用-git-进行版本管理"><a href="#使用-git-进行版本管理" class="headerlink" title="使用 git 进行版本管理"></a>使用 git 进行版本管理</h3><p>因为这是一个入门教程，在这里只介绍最基本的 git 版本管理，确保你能成功提交第一次作业。如果想学习更多的 git 知识，可以参考这本 git 神书：<a href="https://www.progit.cn/#_pro_git">Pro Git</a></p><p>现在我们学习第一个 git 指令：<code>git clone</code> 。以下面的例子为例，我想将下图中的作业内容复制在本地，该如何操作呢？</p><p><img src="/Kamonto_blog/img/20250629/gitclone1.png" alt="Picture Not Found!"></p><p>我们首先点击页面上蓝色的 clone ，使用 Clone with SSH 复制下仓库的地址。紧接着，我们使用 vscode 打开我们想将其复制到的文件夹，我们这里以下图中的 <code>oop_test</code> 文件夹为例：</p><p><img src="/Kamonto_blog/img/20250629/gitclone2.png" alt="Picture Not Found!"></p><p>在 powershell 或 bash 终端输入 <code>git clone 刚才复制下来的地址</code> ，输入密码（如果你刚才设置了的话），就可以将远程仓库的内容复制到本地了。（注意：一定要确认终端处于当前文件夹下！如果不在的话，可以使用 <code>cd</code> 指令进入想要的文件夹）</p><p>现在我们能够看到，<code>oop_test</code> 文件夹</p>]]></content>
       
       
       
@@ -46,20 +46,9 @@
     
     
     <entry>
-      <title>关于</title>
-      <link href="/Kamonto_blog/about/index.html"/>
-      <url>/Kamonto_blog/about/index.html</url>
-      
-        <content type="html"><![CDATA[]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>movies</title>
-      <link href="/Kamonto_blog/movies/index.html"/>
-      <url>/Kamonto_blog/movies/index.html</url>
+      <title>music</title>
+      <link href="/Kamonto_blog/music/index.html"/>
+      <url>/Kamonto_blog/music/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
       
@@ -79,11 +68,22 @@
     
     
     <entry>
-      <title>music</title>
-      <link href="/Kamonto_blog/music/index.html"/>
-      <url>/Kamonto_blog/music/index.html</url>
+      <title>movies</title>
+      <link href="/Kamonto_blog/movies/index.html"/>
+      <url>/Kamonto_blog/movies/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title></title>
+      <link href="/Kamonto_blog/css/custom.css"/>
+      <url>/Kamonto_blog/css/custom.css</url>
+      
+        <content type="html"><![CDATA[/* 页脚与头图透明 */#footer {  background: transparent !important;}#page-header {  background: transparent !important;}  /* 白天模式遮罩透明 */#footer::before {  background: transparent !important;}#page-header::before {  background: transparent !important;}  /* 夜间模式遮罩透明 */[data-theme="dark"] #footer::before {  background: transparent !important;}[data-theme="dark"] #page-header::before {  background: transparent !important;}/*卡片的透明度 */:root {  --card-bg: rgba(255, 255, 255, .7);}[data-theme="dark"] {  --card-bg: rgba(18, 18, 18, .7);}/* 侧边栏个人信息卡片动态渐变色 */#aside-content > .card-widget.card-info {  background: linear-gradient(    -45deg,    #e8d8b9,    #eccec5,    #a3e9eb,    #bdbdf0,    #eec1ea  );  box-shadow: 0 0 2px rgb(66, 68, 68);  position: relative;  background-size: 400% 400%;  -webkit-animation: Gradient 10s ease infinite;  -moz-animation: Gradient 10s ease infinite;  animation: Gradient 10s ease infinite !important;}/* 黑夜模式适配 */[data-theme="dark"] #aside-content > .card-widget.card-info {  background: linear-gradient(    -45deg,    #202020,    #282828,    #1a2b42,    #2d2d44,    #1a2b2b  );  box-shadow: 0 0 2px rgb(66, 68, 68);  position: relative;  background-size: 400% 400%;  -webkit-animation: Gradient 10s ease infinite;  -moz-animation: Gradient 10s ease infinite;  animation: Gradient 10s ease infinite !important;}/* 个人信息Follow me按钮 */#aside-content > .card-widget.card-info > #card-info-btn {  background-color: #39c5bb;  border-radius: 8px;}[data-theme="dark"] #aside-content > .card-widget.card-info > #card-info-btn {  background-color: #007971;  border-radius: 8px;}@-webkit-keyframes Gradient {  0% {    background-position: 0% 50%;  }  50% {    background-position: 100% 50%;  }  100% {    background-position: 0% 50%;  }}@-moz-keyframes Gradient {  0% {    background-position: 0% 50%;  }  50% {    background-position: 100% 50%;  }  100% {    background-position: 0% 50%;  }}@keyframes Gradient {  0% {    background-position: 0% 50%;  }  50% {    background-position: 100% 50%;  }  100% {    background-position: 0% 50%;  }}/* 返回顶部 */button#go-up #percent {  display: none;  font-weight: bold;  font-size: 15px !important;}button#go-up span {  font-size: 12px!important;  margin-right: -1px;}/* 鼠标滑动到按钮上时显示返回顶部图标 */button#go-up:hover i {  display: block !important;}button#go-up:hover #percent {  display: none !important;}]]></content>
       
     </entry>
     
@@ -101,11 +101,11 @@
     
     
     <entry>
-      <title></title>
-      <link href="/Kamonto_blog/css/custom.css"/>
-      <url>/Kamonto_blog/css/custom.css</url>
+      <title>关于</title>
+      <link href="/Kamonto_blog/about/index.html"/>
+      <url>/Kamonto_blog/about/index.html</url>
       
-        <content type="html"><![CDATA[/* 页脚与头图透明 */#footer {  background: transparent !important;}#page-header {  background: transparent !important;}  /* 白天模式遮罩透明 */#footer::before {  background: transparent !important;}#page-header::before {  background: transparent !important;}  /* 夜间模式遮罩透明 */[data-theme="dark"] #footer::before {  background: transparent !important;}[data-theme="dark"] #page-header::before {  background: transparent !important;}/*卡片的透明度 */:root {  --card-bg: rgba(255, 255, 255, .7);}[data-theme="dark"] {  --card-bg: rgba(18, 18, 18, .7);}/* 侧边栏个人信息卡片动态渐变色 */#aside-content > .card-widget.card-info {  background: linear-gradient(    -45deg,    #e8d8b9,    #eccec5,    #a3e9eb,    #bdbdf0,    #eec1ea  );  box-shadow: 0 0 2px rgb(66, 68, 68);  position: relative;  background-size: 400% 400%;  -webkit-animation: Gradient 10s ease infinite;  -moz-animation: Gradient 10s ease infinite;  animation: Gradient 10s ease infinite !important;}/* 黑夜模式适配 */[data-theme="dark"] #aside-content > .card-widget.card-info {  background: linear-gradient(    -45deg,    #202020,    #282828,    #1a2b42,    #2d2d44,    #1a2b2b  );  box-shadow: 0 0 2px rgb(66, 68, 68);  position: relative;  background-size: 400% 400%;  -webkit-animation: Gradient 10s ease infinite;  -moz-animation: Gradient 10s ease infinite;  animation: Gradient 10s ease infinite !important;}/* 个人信息Follow me按钮 */#aside-content > .card-widget.card-info > #card-info-btn {  background-color: #39c5bb;  border-radius: 8px;}[data-theme="dark"] #aside-content > .card-widget.card-info > #card-info-btn {  background-color: #007971;  border-radius: 8px;}@-webkit-keyframes Gradient {  0% {    background-position: 0% 50%;  }  50% {    background-position: 100% 50%;  }  100% {    background-position: 0% 50%;  }}@-moz-keyframes Gradient {  0% {    background-position: 0% 50%;  }  50% {    background-position: 100% 50%;  }  100% {    background-position: 0% 50%;  }}@keyframes Gradient {  0% {    background-position: 0% 50%;  }  50% {    background-position: 100% 50%;  }  100% {    background-position: 0% 50%;  }}/* 返回顶部 */button#go-up #percent {  display: none;  font-weight: bold;  font-size: 15px !important;}button#go-up span {  font-size: 12px!important;  margin-right: -1px;}/* 鼠标滑动到按钮上时显示返回顶部图标 */button#go-up:hover i {  display: block !important;}button#go-up:hover #percent {  display: none !important;}]]></content>
+        <content type="html"><![CDATA[]]></content>
       
     </entry>
     

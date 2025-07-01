@@ -81,6 +81,17 @@
     
     
     <entry>
+      <title>movies</title>
+      <link href="/Kamonto_blog/movies/index.html"/>
+      <url>/Kamonto_blog/movies/index.html</url>
+      
+        <content type="html"><![CDATA[]]></content>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>music</title>
       <link href="/Kamonto_blog/music/index.html"/>
       <url>/Kamonto_blog/music/index.html</url>
@@ -106,17 +117,6 @@
       <title>关于</title>
       <link href="/Kamonto_blog/about/index.html"/>
       <url>/Kamonto_blog/about/index.html</url>
-      
-        <content type="html"><![CDATA[]]></content>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>movies</title>
-      <link href="/Kamonto_blog/movies/index.html"/>
-      <url>/Kamonto_blog/movies/index.html</url>
       
         <content type="html"><![CDATA[]]></content>
       

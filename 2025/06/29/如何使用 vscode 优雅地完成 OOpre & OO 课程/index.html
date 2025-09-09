@@ -1,0 +1,326 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>【更新中】如何使用 vscode 优雅地完成 OOpre &amp; OO 课程 | Kamonto's Little Planet</title><meta name="author" content="Kamonto"><meta name="copyright" content="Kamonto"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="referrer" content="no-referrer"><meta name="description" content="本篇文章基于 Windows 的 vscode 提供，阅读之前请确认是否正确 ~如果图片不清晰，请右键图片，选择“放大图像”或“在新标签页中打开图像”  OOpre : 使用命令行完成 git下载 git首先，我们在 git 官网下载 git ：   下载之后，我们可以将其放在自己喜欢的位置（比如我喜欢放在 D 盘根目录）：   点击图片中的 Git-2.46.0-64-bit.exe ，进行安">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【更新中】如何使用 vscode 优雅地完成 OOpre &amp; OO 课程">
+<meta property="og:url" content="https://kamonto.github.io/Kamonto_blog/2025/06/29/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%20vscode%20%E4%BC%98%E9%9B%85%E5%9C%B0%E5%AE%8C%E6%88%90%20OOpre%20&%20OO%20%E8%AF%BE%E7%A8%8B/index.html">
+<meta property="og:site_name" content="Kamonto&#39;s Little Planet">
+<meta property="og:description" content="本篇文章基于 Windows 的 vscode 提供，阅读之前请确认是否正确 ~如果图片不清晰，请右键图片，选择“放大图像”或“在新标签页中打开图像”  OOpre : 使用命令行完成 git下载 git首先，我们在 git 官网下载 git ：   下载之后，我们可以将其放在自己喜欢的位置（比如我喜欢放在 D 盘根目录）：   点击图片中的 Git-2.46.0-64-bit.exe ，进行安">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://kamonto.github.io/Kamonto_blog/img/profile_picture.png">
+<meta property="article:published_time" content="2025-06-29T06:18:27.000Z">
+<meta property="article:modified_time" content="2025-09-09T11:22:31.980Z">
+<meta property="article:author" content="Kamonto">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://kamonto.github.io/Kamonto_blog/img/profile_picture.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "【更新中】如何使用 vscode 优雅地完成 OOpre & OO 课程",
+  "url": "https://kamonto.github.io/Kamonto_blog/2025/06/29/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%20vscode%20%E4%BC%98%E9%9B%85%E5%9C%B0%E5%AE%8C%E6%88%90%20OOpre%20&%20OO%20%E8%AF%BE%E7%A8%8B/",
+  "image": "https://kamonto.github.io/Kamonto_blog/img/profile_picture.png",
+  "datePublished": "2025-06-29T06:18:27.000Z",
+  "dateModified": "2025-09-09T11:22:31.980Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Kamonto",
+      "url": "https://kamonto.github.io/Kamonto_blog/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/Kamonto_blog/img/star-solid2.svg"><link rel="canonical" href="https://kamonto.github.io/Kamonto_blog/2025/06/29/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%20vscode%20%E4%BC%98%E9%9B%85%E5%9C%B0%E5%AE%8C%E6%88%90%20OOpre%20&amp;%20OO%20%E8%AF%BE%E7%A8%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/Kamonto_blog/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/Kamonto_blog/',
+  algolia: undefined,
+  localSearch: {"path":"/Kamonto_blog/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"未找到符合您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":230,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"top-right"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '【更新中】如何使用 vscode 优雅地完成 OOpre & OO 课程',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="https://cdn1.tianli0.top/npm/element-ui@2.15.6/packages/theme-chalk/lib/index.css"><link rel="stylesheet" href="/Kamonto_blog/css/custom.css" media="defer" onload="this.media='all'"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background:url('/Kamonto_blog/img/home_background2.jpg') no-repeat center / cover; background-attachment: fixed;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/profile_picture.png" onerror="this.onerror=null;this.src='/Kamonto_blog/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/Kamonto_blog/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/Kamonto_blog/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/Kamonto_blog/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Kamonto_blog/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/Kamonto_blog/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/Kamonto_blog/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/Kamonto_blog/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/Kamonto_blog/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Kamonto_blog/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/Kamonto_blog/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/Kamonto_blog/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/Kamonto_blog/"><span class="site-name">Kamonto's Little Planet</span></a><a class="nav-page-title" href="/Kamonto_blog/"><span class="site-name">【更新中】如何使用 vscode 优雅地完成 OOpre &amp; OO 课程</span></a></span><div id="menus"><div id="search-button"><span class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></span></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/Kamonto_blog/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/Kamonto_blog/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/Kamonto_blog/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/Kamonto_blog/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 列表</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/Kamonto_blog/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Kamonto_blog/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/Kamonto_blog/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/Kamonto_blog/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">【更新中】如何使用 vscode 优雅地完成 OOpre &amp; OO 课程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-29T06:18:27.000Z" title="发表于 2025-06-29 14:18:27">2025-06-29</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-09-09T11:22:31.980Z" title="更新于 2025-09-09 19:22:31">2025-09-09</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>13分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><blockquote>
+<p>本篇文章基于 Windows 的 vscode 提供，阅读之前请确认是否正确 ~<br>如果图片不清晰，请右键图片，选择“放大图像”或“在新标签页中打开图像”</p>
+</blockquote>
+<h2 id="OOpre-使用命令行完成-git"><a href="#OOpre-使用命令行完成-git" class="headerlink" title="OOpre : 使用命令行完成 git"></a>OOpre : 使用命令行完成 git</h2><h3 id="下载-git"><a href="#下载-git" class="headerlink" title="下载 git"></a>下载 git</h3><p>首先，我们在<a target="_blank" rel="noopener" href="https://git-scm.com/downloads"> git 官网</a>下载 git ：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/%E4%B8%8B%E8%BD%BDgit1.png" alt="Picture Not Found!"></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/%E4%B8%8B%E8%BD%BDgit2.png" alt="Picture Not Found!"></p>
+<p>下载之后，我们可以将其放在自己喜欢的位置（比如我喜欢放在 D 盘根目录）：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/%E5%AE%89%E8%A3%85git1.png" alt="Picture Not Found!"></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/%E5%AE%89%E8%A3%85git2.png" alt="Picture Not Found!"></p>
+<p>点击图片中的 Git-2.46.0-64-bit.exe ，进行安装，安装时一路点击 Next 即可。</p>
+<h3 id="配置-git"><a href="#配置-git" class="headerlink" title="配置 git"></a>配置 git</h3><p>接下来，我们来进行 git 的配置。首先我们在任意文件夹下打开 powershell 终端（比如我现在在写博客的文件夹）：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/%E6%89%93%E5%BC%80powershell.png" alt="Picture Not Found!"></p>
+<p>接着<strong>依次</strong>输入以下两条指令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git config --global user.name <span class="string">&quot;你的昵称&quot;</span></span><br><span class="line">git config --global user.email <span class="string">&quot;你的邮箱&quot;</span></span><br></pre></td></tr></table></figure>
+<p>（要把 <code>你的昵称</code> 和 <code>你的邮箱</code> 换成你的昵称和邮箱，不会有人原封不动写上去吧）</p>
+<p>为了检查是否设置成功，可以输入以下指令进行检查：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global --list</span><br></pre></td></tr></table></figure>
+
+<p>如果出现类似以下内容，证明昵称和邮箱设置成功：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">user.name=Kamonto</span><br><span class="line">user.email=Kamonto@126.com</span><br><span class="line">http.proxy=http://127.0.0.1:10809</span><br></pre></td></tr></table></figure>
+<p>（这里的值是我的昵称和邮箱，你的值应该是你刚才填的昵称和邮箱）</p>
+<p>这样，我们就完成了 git 的配置。在之后，使用 powershell 或 bash 终端都可以进行 git 指令的操作。</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/powershell%E5%92%8Cbash%E7%BB%88%E7%AB%AF.png" alt="Picture Not Found!"></p>
+<h3 id="配置-SSH-Key"><a href="#配置-SSH-Key" class="headerlink" title="配置 SSH Key"></a>配置 SSH Key</h3><p>在任意目录下的 powershell 或 bash 终端输入如下指令，生成 SSH Key 密钥：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa -C <span class="string">&quot;你的邮箱&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>在生成时，我们需要输入保存密钥的地址，这里我们选择它推荐的地址即可：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Generating public/private rsa key pair.</span><br><span class="line">Enter file in which to save the key (/c/Users/24502/.ssh/id_rsa): </span><br></pre></td></tr></table></figure>
+<p>（这里每个人的用户名是不同的，我的用户名是 24502 ）</p>
+<p>这个地址位于家目录下的 .ssh 文件夹，等价于 <code>~/.ssh/id_rsa</code> ，记住这个 <code>~/.ssh</code> 文件夹，过后有用。</p>
+<p>输入地址之后，我们还可以为其设置密码，这里如果直接按回车跳过的话就是不设置密码。顺带一提，我个人是比较喜欢设置密码的。</p>
+<p>这样我们就成功生成了 SSH Key ，下面我们要在 OOpre 课程的 gitlab 平台添加这个密钥。</p>
+<p>打开 gitlab 平台的任意界面，点击右上角的图像，选择 Edit profile ，进入个人主页，然后就能看到左侧的 SSH Key 选项了。</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/gitlabSSHKey.png" alt="Picture Not Found!"></p>
+<p>在上述界面的 Key 一栏中，我们需要输入我们的<strong>公钥</strong>，这个公钥储存在 <code>~/.ssh/id_rsa.pub</code> 中（如果你刚才将密钥存储在默认位置 <code>~/.ssh/id_rsa</code> 的话；如果不是的话，将你刚才存储密钥的位置后面加上 <code>.pub</code> 即可）。</p>
+<p>我们在终端输入 <code>cat ~/.ssh/id_rsa.pub</code> ，复制输出的全部内容，这个内容的格式应该如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh-rsa</span><br><span class="line">AAAAxxxxxxxxxxxxxxxxx...(一堆乱码)= 你的邮箱</span><br></pre></td></tr></table></figure>
+
+<p>这个就是我们的公钥，我们将其复制到刚才图中界面的 Key 一栏中。对于 Title 一栏，我们可以随便给密钥起个名字，起什么都没有关系。而 Expiration date 是密钥的失效日期，如果你不想在上机实验的时候 git 突然失效，那我劝你把这个日期设远一些，或者设在寒暑假期间。&lt;- 个人惨痛经历</p>
+<p>最后点击下方的 Add key ，我们就可以使用 git 了。</p>
+<h3 id="使用-git-进行版本管理-git-clone"><a href="#使用-git-进行版本管理-git-clone" class="headerlink" title="使用 git 进行版本管理 - git clone"></a>使用 git 进行版本管理 - git clone</h3><p>因为这是一个入门教程，在这里只介绍最基本的 git 版本管理，确保你能成功提交第一次作业。如果想学习更多的 git 知识，可以参考这本 git 神书：<a target="_blank" rel="noopener" href="https://www.progit.cn/#_pro_git">Pro Git</a></p>
+<p>现在我们学习第一个 git 指令：<code>git clone</code> 。以下面的例子为例，我想将下图中的作业内容复制在本地，该如何操作呢？</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/gitclone1.png" alt="Picture Not Found!"></p>
+<p>我们首先点击页面上蓝色的 clone ，使用 Clone with SSH 复制下仓库的地址。紧接着，我们使用 vscode 打开我们想将其复制到的文件夹，我们这里以下图中的 <code>oop_test</code> 文件夹为例：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/gitclone2.png" alt="Picture Not Found!"></p>
+<p>在 powershell 或 bash 终端输入 <code>git clone 刚才复制下来的地址</code> ，输入密码（如果你刚才设置了的话），就可以将远程仓库的内容复制到本地了。（注意：一定要确认终端处于当前文件夹下！如果不在的话，可以使用 <code>cd</code> 指令进入想要的文件夹）</p>
+<p>现在我们能够看到，<code>oop_test</code> 文件夹下出现了一个文件夹，名字为我们刚才复制的远程仓库的名字，这个文件夹的内容就是远程仓库的内容。</p>
+<p>这里要注意，即使我们的作业仓库最开始是空的，也需要在最开始的时候将其 <code>git clone</code> 下来。这是因为由 <code>git clone</code> 复制下来的文件夹中<strong>记载着</strong>远程仓库的位置，这样我们写完作业后才能使用 <code>git push</code> 将我们的作业推送到远程仓库中（其实用 <code>git init</code> 和 <code>git remote add</code> 也能够实现，详情可以参考上文中的 Git Pro 教程）。</p>
+<p>这里插一句，上一段中的“记载着”到底是如何实现的呢？我们观察从远程仓库复制下来的文件夹，其中会有一个文件夹的名字名为 <code>.git</code>（这是一个隐藏文件，需要在文件夹中选择“显示隐藏文件”选项，或在终端中使用 <code>ls -a</code> 查看）。请千万记住，这个文件夹里存放着这个仓库所有的版本管理信息，千万不要移动、修改、删除它！</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/git.png" alt="Picture Not Found!"> </p>
+<p>接下来，我们需要将终端切换到 <code>.git</code> 文件所在的目录（即远程仓库的根目录），这是非常重要的一步，千万不要忘记！你可以使用 <code>cd 文件夹所在位置</code> 进入该文件夹，例如上图中我就使用了 <code>cd ooprehomework_2024_xxxxxxxx_hw_4</code> 进行了切换；或者直接在 vscode 的左上角“文件”处打开你刚才复制下来的文件夹。这里我推荐后者，因为当有多个 java 工程在同一个文件夹下的话，前者会导致无法通过编译，这里我们在下一章会细说，先按下不表。如果你使用的是 bash 终端的话，你就可以像上图中在终端所在位置的后面看到当前分支的名字（一般是 master）。下面你就可以着手完成作业了！</p>
+<h3 id="使用-git-进行版本管理-git-add-git-commit-git-push"><a href="#使用-git-进行版本管理-git-add-git-commit-git-push" class="headerlink" title="使用 git 进行版本管理 - git add, git commit, git push"></a>使用 git 进行版本管理 - git add, git commit, git push</h3><p>在完成作业后，我们肯定要提交我们的作业，但这也是一个巨大的挑战。我本人在最开始接触 OOpre 的时候真的很崩溃，因为从来没有哪个科目能让我连作业都交不上去的，所以我想让屏幕前的你能够顺利地完成这个挑战！</p>
+<p>目前，我们修改了一些文件，所以很多文件的右面出现了 M 字样（即 Modified）。此外，如果我们添加了新文件，就会出现 U 字样（即 Untracked），删除文件会出现 D 字样（即 deleted）。这时候就需要我们使用 <code>git add</code> 指令对其进行暂存了。</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/gitadd.png" alt="Picture Not Found!"></p>
+<p>如果想对某个文件进行暂存，就可以输入 <code>git add 文件相对位置</code> 进行暂存。这里的相对位置指的是相对远程仓库的根目录的位置，如上图中 <code>Book.java</code> 的相对位置为 <code>src/Book.java</code> 。</p>
+<p>如果想对所有 <code>.java</code> 类型的文件暂存，可以使用通配符 <code>*</code> 来解决，例如上图中情况就可以使用 <code>git add *.java</code> 进行暂存。更粗暴一点的话，使用 <code>git add .</code> 可以对当前文件夹下所有未暂存的文件进行暂存。</p>
+<p>当然，随着我们日后的学习，我们也会发现有些东西是不适合推送至远程仓库的，例如下图中，我在其中加入了一些用于辅助的文件夹（你们会在之后再见到它们的）。实际上，如果把它们直接晾在那里，不去 <code>git add</code> 它们也可以，但是绿色的 U 实在是有点太显眼了，这时候我们就可以创建一个名为 <code>.gitignore</code> 的文件，在其中写下我们不需要上传至远程仓库的文件名。这个文件名可以是文件，也可以是文件夹，总之可以是相对于当前目录的任何路径。另外别忘了，<code>.gitignore</code> 文件本身也要写进去！</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/gitignore1.png" alt="Picture Not Found!"></p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/gitignore2.png" alt="Picture Not Found!"></p>
+<p>接下来，我们需要将暂存的文件进行保存，这时候就需要用到 <code>git commit</code> 指令了。在终端中输入 <code>git commit -m &quot;更新信息&quot;</code> ，就可以将当前的所有更改保存至 <code>.git</code> 文件中了。理论上来说，我还是建议好好写一写更新信息的（虽然我本人写得也很潦草），毕竟这个东西会永远留在仓库中，可能会有些尴尬。</p>
+<p>最后，我们在经历可能一次可能多次的 <code>git commit</code> 之后，可以使用 <code>git push</code> 指令（就是 <code>git push</code> ，原封不动输入进终端就可以）把我们之前的每一次保存上传至远程的仓库中。这个环节也需要输入密码（如果你之前有设置的话），不要以为是卡死了！完成这一步之后，我们就可以在 gitlab 上看到我们上传的代码了，同时也可以在 OO 课程平台提交作业了。</p>
+<p>很多时候，我们都很难一次提交就通过全部评测，在提交之后往往还需要再修改，不过不要担心，只要在修改之后重复上述三个步骤，就没有任何问题了！</p>
+<p>再说一句题外话，因为上述三个操作的撤销都比较复杂，所以我们可以尽量避免错误执行上述三条指令的情况，在执行这些指令之前，我们可以在终端输入 <code>git status</code> ，这条指令可以帮助我们看到当前所有文件的状态，避免误将某些不该暂存的文件暂存、修改了不该修改的文件等异常行为。</p>
+<h2 id="OOpre-运行-java-程序"><a href="#OOpre-运行-java-程序" class="headerlink" title="OOpre : 运行 java 程序"></a>OOpre : 运行 java 程序</h2><h3 id="vscode-中的-java-工程"><a href="#vscode-中的-java-工程" class="headerlink" title="vscode 中的 java 工程"></a>vscode 中的 java 工程</h3><p>虽然我们刚才已经学习到如何交作业了，但是我怕你还不会在 vscode 里编译运行 java 文件，所以我们接下来学习一下如何在 vscode 中完成一个 java 工程。</p>
+<p>和我们大一学习过的程序设计和数据结构不同，我们以后的工程不再是只靠一个文件就能完成的了。在刚才的例子中我们也看到了，一次作业的内容往往由一堆 java 文件（以后还可能会有其它类型的文件）组成，这就需要引入一个更大的概念——工程。上述的所有文件都属于这个工程的一部分，我们也是围绕整个工程进行编程的。</p>
+<p>不同于 idea 等喂饭到嘴边的工具，vscode 中并没有提供一个界面让我们手动选择项目工程的范围。但是说来也简单，vscode 认为一个工程的范围其实就是当前所打开的文件夹，比如说我们上面的所有图片中，工程的范围都是 <code>oop_test</code> 文件夹。</p>
+<p>为什么我们要了解工程的范围呢？这其实直接关系到我们的 java 代码能否正常通过编译，例如下图中，我的 <code>oop</code> 文件夹中有 OOpre 课程中所有作业的工程，但如果在这个界面下运行 java 程序，就会导致任何一个工程都无法正常编译运行。这是因为 vscode 认为它们都隶属于一个大工程，如果把它们都看成一个整体的话，自然是没有办法解释的。</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/java%E5%B7%A5%E7%A8%8B1.png" alt="Picture Not Found!"></p>
+<p>正确的做法是选择其中的一个文件夹打开，确保左侧的列表中没有多余的 java 文件：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/java%E5%B7%A5%E7%A8%8B2.png" alt="Picture Not Found!"></p>
+<p>了解了工程的概念后，我们就可以开始编程了。</p>
+<h3 id="java-程序的编译运行"><a href="#java-程序的编译运行" class="headerlink" title="java 程序的编译运行"></a>java 程序的编译运行</h3><p>写完作业之后，我们肯定需要在本地运行我们的代码进行测试，那么 vscode 中如何运行 java 程序呢？我们知道，<del>vscode 是一款轻量级的文本编辑器</del>，所以肯定是不会自带 java 编译器的，所以我们要去插件市场下载 java 相关的插件，后续我们也会经常下载插件来辅助我们完成任务。</p>
+<p>来到插件市场，下载这个插件：Extension Pack for Java ：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/extensionPackForJava.png" alt="Picture Not Found!"></p>
+<p>接下来，我们回到编辑界面，点击任意一个 java 文件，这时你会看到左下角在加载一个叫 JAVA PROJECTS 的菜单:</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/javaProjects.png" alt="Picture Not Found!"></p>
+<p>这就证明了我们已经成功为这个项目加载了 java 插件。在编辑区域右键，选择 Run Java 或 Debug Java ，再在上方选择主函数所在文件（只有打开工程后第一次运行，且不是在主函数所在文件选择的 Run Java 和 Debug Java ，才会出现这个选项），就可以进入运行或者调试阶段了。</p>
+<h2 id="OOpre-CheckStyle-测试"><a href="#OOpre-CheckStyle-测试" class="headerlink" title="OOpre : CheckStyle 测试"></a>OOpre : CheckStyle 测试</h2><p>众所周知，OO 这门课程是一门非常专业的课程，所以对我们的代码风格要求非常高，于是就有了 CheckStyle 测试。为此，课程组为我们准备了 CheckStyle 文件，供我们在本地进行测试。那么，在 vscode 中，我们应该如何进行 CheckStyle 测试呢？</p>
+<p>首先，我们需要到插件市场下载 Checkstyle for Java 插件：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/%E4%B8%8B%E8%BD%BDCheckStyle%E6%8F%92%E4%BB%B6.png" alt="alt text"></p>
+<p>接下来，我们从课程组的仓库中下载最新版的 CheckStyle 文件，将它放在电脑中的任意位置：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/%E8%AF%BE%E7%A8%8B%E7%BB%84%E7%9A%84CheckStyle%E6%96%87%E4%BB%B6.png" alt="alt text"></p>
+<p>在我们开始编写代码之前，我们就可以将 CheckStyle 文件导入，这样就可以实现实时的代码风格检查（如果你想检测一下自己的代码风格的话，也可以写完代码之后再导入）。在 vscode 页面最上方，我们点击选择“显示并运行命令”（或者按快捷键 <code>crtl + shift + P</code> ），选择“ Checkstyle : 设置 Checkstyle 配置文件”：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/%E5%AF%BC%E5%85%A5CheckStyle%E6%96%87%E4%BB%B61.png" alt="alt text"></p>
+<p>接下来选择 Browse ，即从本地自行导入 CheckStyle 文件：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/%E5%AF%BC%E5%85%A5CheckStyle%E6%96%87%E4%BB%B62.png" alt="alt text"></p>
+<p>在弹出的界面中，我们选择刚才下载下来的 xml 文件导入，可以看到已经自动检查我们代码中的风格错误了：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/%E5%AF%BC%E5%85%A5CheckStyle%E6%96%87%E4%BB%B63.png" alt="alt text"></p>
+<h2 id="OOpre-JUnit-测试"><a href="#OOpre-JUnit-测试" class="headerlink" title="OOpre : JUnit 测试"></a>OOpre : JUnit 测试</h2><p>接下来，我们来学习如何对我们的代码进行 JUnit 测试。在我们编写完一个程序之后，我们点击左侧的锥形瓶，选择 Enable Java Tests ：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/JUnit%E6%B5%8B%E8%AF%951.png" alt="alt text"></p>
+<p>在弹出的选项中，我们选择 JUnit ：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/JUnit%E6%B5%8B%E8%AF%952.png" alt="alt text"></p>
+<p>此时，我们回到文件界面，就可以看见自动添加的 lib 文件夹了：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/JUnit%E6%B5%8B%E8%AF%953.png" alt="alt text"></p>
+<p>接下来，我们来到要进行测试的方法所在的文件（这里以 Solver.java 为例），打开上方指令栏（ <code>crtl + shift + P</code> ），执行“ Java : 转到测试”（“ Java : Go to Test ”）指令：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/JUnit%E6%B5%8B%E8%AF%954.png" alt="alt text"></p>
+<p>我们直接选择 Generate tests ：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/JUnit%E6%B5%8B%E8%AF%955.png" alt="alt text"></p>
+<p>输入测试文件的名字（这里直接用它自动给出的就可以），按回车确认：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/JUnit%E6%B5%8B%E8%AF%956.png" alt="alt text"></p>
+<p>接下来选中所有要测试的方法（这里只有一个方法，就全选了）：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/JUnit%E6%B5%8B%E8%AF%957.png" alt="alt text"></p>
+<p>可以看到在文件夹中生成了测试文件：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/JUnit%E6%B5%8B%E8%AF%958.png" alt="alt text"></p>
+<p>根据课程组的要求，我们可以把测试文件移至 test 文件夹下，点击测试方法左侧的箭头执行测试，点击整个类左侧的双箭头执行全部测试：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/JUnit%E6%B5%8B%E8%AF%959.png" alt="alt text"></p>
+<p>如果需要进行覆盖率测试，我们可以右键测试按钮，在弹出的选项中选择“运行覆盖率测试”即可：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/JUnit%E6%B5%8B%E8%AF%9510.png" alt="alt text"></p>
+<p>运行覆盖率测试之后，每个文件的右侧就会显示文件的测试覆盖率，在文件内部，我们还可以看到每行代码的覆盖情况：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/JUnit%E6%B5%8B%E8%AF%9511.png" alt="alt text"></p>
+<h2 id="OOpre-编写-Markdown-文档"><a href="#OOpre-编写-Markdown-文档" class="headerlink" title="OOpre : 编写 Markdown 文档"></a>OOpre : 编写 Markdown 文档</h2><p>在 OOpre 课程的结尾，以及 OO 的每个单元结束，我们都要写一篇博客，总结自己程序的架构。这时就需要用到 Markdown 文档了。</p>
+<p>首先，我们需要下载 Markdown 相关的插件，我们在插件市场中搜索 Markdown ，我下载的插件是 Markdown All in One 和 Markdown Preview Enhanced ，大家可以参考一下：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/Markdown1.png" alt="alt text"></p>
+<p>在下载完成之后，我们就可以创建 .md 类型的文件编写 Markdown 文档了！关于 Markdown 相关的语法，这里就不展开讲了，我们可以看<a target="_blank" rel="noopener" href="https://www.runoob.com/markdown/md-tutorial.html">菜鸟教程</a>中的内容进行学习。</p>
+<p>在编写 Markdown 文档的时候，我们肯定希望一边编写一边预览，只需要在 Markdown 文档中右键，选择 “ MPE : 打开侧边预览 ”，就可以在右侧看到实时的预览了：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/Markdown2.png" alt="alt text"></p>
+<p>如果需要将 Markdown 文档导出为 pdf 文件（ OO 课程貌似没有这个需求），我们可以右键右侧的预览部分，依次选择 Export -&gt; Chrome(Puppeteer) -&gt; PDF ，就可以在同一目录下导出 pdf 文件了：</p>
+<p><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/20250609/Markdown3.png" alt="alt text"></p>
+<h2 id="OOpre-绘制-UML-类图"><a href="#OOpre-绘制-UML-类图" class="headerlink" title="OOpre : 绘制 UML 类图"></a>OOpre : 绘制 UML 类图</h2><h2 id="OO-jar-包的导入、压缩、解压缩"><a href="#OO-jar-包的导入、压缩、解压缩" class="headerlink" title="OO : jar 包的导入、压缩、解压缩"></a>OO : jar 包的导入、压缩、解压缩</h2><h2 id="OO-支持-JavaFX"><a href="#OO-支持-JavaFX" class="headerlink" title="OO : 支持 JavaFX"></a>OO : 支持 JavaFX</h2><h2 id="OO-复杂度测试"><a href="#OO-复杂度测试" class="headerlink" title="OO : 复杂度测试"></a>OO : 复杂度测试</h2><h2 id="OO-支持-JML"><a href="#OO-支持-JML" class="headerlink" title="OO : 支持 JML"></a>OO : 支持 JML</h2></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://Kamonto.github.io/Kamonto_blog">Kamonto</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://kamonto.github.io/Kamonto_blog/2025/06/29/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%20vscode%20%E4%BC%98%E9%9B%85%E5%9C%B0%E5%AE%8C%E6%88%90%20OOpre%20&amp;%20OO%20%E8%AF%BE%E7%A8%8B/">https://kamonto.github.io/Kamonto_blog/2025/06/29/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%20vscode%20%E4%BC%98%E9%9B%85%E5%9C%B0%E5%AE%8C%E6%88%90%20OOpre%20&amp;%20OO%20%E8%AF%BE%E7%A8%8B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://Kamonto.github.io/Kamonto_blog" target="_blank">Kamonto's Little Planet</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/Kamonto_blog/img/profile_picture.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/Kamonto_blog/2025/05/02/hello-world/" title="Hello World"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Hello World</div></div><div class="info-2"><div class="info-item-1">Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick StartCreate a new post1$ hexo new &quot;My New Post&quot;  More info: Writing Run server1$ hexo server  More info: Server Generate static files1$ hexo generate  More info: Generating Deploy to remote sites1$ hexo deploy  More info: Deployment </div></div></div></a><a class="pagination-related" href="/Kamonto_blog/2025/07/02/OS2025%20Shell%20Challenge/" title="OS2025 Shell Challenge"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">OS2025 Shell Challenge</div></div><div class="info-2"><div class="info-item-1">OS Shell 挑战性任务实验报告任务要求在 lab6 中，我们在 MOS 中实现了简单的 Shell ，但是距离真正的 Shell 还有很大一段距离。在本次挑战性任务中，我们需要基于 lab 6 的实现，完善我们的 Shell 的下列功能，通过自动评测并撰写实验报告：  支持相对路径 加入内建指令 cd pwd  支持局部变量与全局变量 加入内建指令 declare unset  支持在输入指令时使用 left-arrow 和 right-arrow 移动光标 支持在输入指令时在任意位置插入和删除字符 支持兼容不以 .b 结尾的外部指令 支持 ctrl-E ctrl-A ctrl-K ctrl-U ctrl-W 等快捷键 支持使用 up-arrow 和 down-arrow 回溯历史指令 加入内建指令 history  支持使用 # 进行注释 支持反引号 `  支持使用分号 ; 实现一行多指令 支持使用 &amp;&amp; 和 || 实现指令条件执行 加入外部指令 mkdir touch rm 和内建指令 exit  支持使用 &gt;&gt;...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-lazy-src="/Kamonto_blog/img/profile_picture.png" onerror="this.onerror=null;this.src='/Kamonto_blog/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Kamonto</div><div class="author-info-description"></div><div class="site-data"><a href="/Kamonto_blog/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/Kamonto_blog/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/Kamonto_blog/categories/"><div class="headline">分类</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/Kamonto"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/Kamonto" target="_blank" title="Github"><i class="fab fa-github"></i></a><a class="social-icon" href="mailto:blumaha@buaa.edu.cn" target="_blank" title="Email"><i class="fas fa-envelope"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">Kamonto 博客开业啦！新鲜热乎！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#OOpre-%E4%BD%BF%E7%94%A8%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%AE%8C%E6%88%90-git"><span class="toc-text">OOpre : 使用命令行完成 git</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BD-git"><span class="toc-text">下载 git</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE-git"><span class="toc-text">配置 git</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE-SSH-Key"><span class="toc-text">配置 SSH Key</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-git-%E8%BF%9B%E8%A1%8C%E7%89%88%E6%9C%AC%E7%AE%A1%E7%90%86-git-clone"><span class="toc-text">使用 git 进行版本管理 - git clone</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8-git-%E8%BF%9B%E8%A1%8C%E7%89%88%E6%9C%AC%E7%AE%A1%E7%90%86-git-add-git-commit-git-push"><span class="toc-text">使用 git 进行版本管理 - git add, git commit, git push</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OOpre-%E8%BF%90%E8%A1%8C-java-%E7%A8%8B%E5%BA%8F"><span class="toc-text">OOpre : 运行 java 程序</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#vscode-%E4%B8%AD%E7%9A%84-java-%E5%B7%A5%E7%A8%8B"><span class="toc-text">vscode 中的 java 工程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#java-%E7%A8%8B%E5%BA%8F%E7%9A%84%E7%BC%96%E8%AF%91%E8%BF%90%E8%A1%8C"><span class="toc-text">java 程序的编译运行</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OOpre-CheckStyle-%E6%B5%8B%E8%AF%95"><span class="toc-text">OOpre : CheckStyle 测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OOpre-JUnit-%E6%B5%8B%E8%AF%95"><span class="toc-text">OOpre : JUnit 测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OOpre-%E7%BC%96%E5%86%99-Markdown-%E6%96%87%E6%A1%A3"><span class="toc-text">OOpre : 编写 Markdown 文档</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OOpre-%E7%BB%98%E5%88%B6-UML-%E7%B1%BB%E5%9B%BE"><span class="toc-text">OOpre : 绘制 UML 类图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OO-jar-%E5%8C%85%E7%9A%84%E5%AF%BC%E5%85%A5%E3%80%81%E5%8E%8B%E7%BC%A9%E3%80%81%E8%A7%A3%E5%8E%8B%E7%BC%A9"><span class="toc-text">OO : jar 包的导入、压缩、解压缩</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OO-%E6%94%AF%E6%8C%81-JavaFX"><span class="toc-text">OO : 支持 JavaFX</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OO-%E5%A4%8D%E6%9D%82%E5%BA%A6%E6%B5%8B%E8%AF%95"><span class="toc-text">OO : 复杂度测试</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OO-%E6%94%AF%E6%8C%81-JML"><span class="toc-text">OO : 支持 JML</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/Kamonto_blog/2025/09/07/%E4%B8%80%E6%9C%AC%E4%B9%A6%E6%95%99%E4%BD%A0%E9%80%9A%E5%85%B3%E8%AE%A1%E7%BB%84%E5%AE%9E%E9%AA%8C%EF%BC%88%E4%B8%8A%EF%BC%89/" title="一本书教你通关计组实验（上）">一本书教你通关计组实验（上）</a><time datetime="2025-09-07T08:15:39.000Z" title="发表于 2025-09-07 16:15:39">2025-09-07</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/Kamonto_blog/2025/07/03/OS2025%20%E4%B8%8A%E6%9C%BA%E8%80%83%E8%AF%95%E5%85%A8%E6%94%BB%E7%95%A5/" title="【更新中】OS2025 上机考试全攻略">【更新中】OS2025 上机考试全攻略</a><time datetime="2025-07-03T03:16:54.000Z" title="发表于 2025-07-03 11:16:54">2025-07-03</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/Kamonto_blog/2025/07/02/OS2025%20Shell%20Challenge/" title="OS2025 Shell Challenge">OS2025 Shell Challenge</a><time datetime="2025-07-01T18:19:23.000Z" title="发表于 2025-07-02 02:19:23">2025-07-02</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2025 By Kamonto</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">背景图: 夜空 | 花本 #pixiv https://www.pixiv.net/artworks/97261750</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i><span id="percent">0</span></button><button id="go-down" type="button" title="直达底部" onclick="btf.scrollToDest(document.body.scrollHeight, 500)"><i class="fas fa-arrow-down"></i></button></div></div><div><script src="/Kamonto_blog/js/utils.js"></script><script src="/Kamonto_blog/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const loadMathjax = () => {
+    if (!window.MathJax) {
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          tags: 'none',
+        },
+        chtml: {
+          scale: 1.1
+        },
+        options: {
+          enableMenu: true,
+          renderActions: {
+            findScript: [10, doc => {
+              for (const node of document.querySelectorAll('script[type^="math/tex"]')) {
+                const display = !!node.type.match(/; *mode=display/)
+                const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display)
+                const text = document.createTextNode('')
+                node.parentNode.replaceChild(text, node)
+                math.start = {node: text, delim: '', n: 0}
+                math.end = {node: text, delim: '', n: 0}
+                doc.math.push(math)
+              }
+            }, '']
+          }
+        }
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.min.js'
+      script.id = 'MathJax-script'
+      script.async = true
+      document.head.appendChild(script)
+    } else {
+      MathJax.startup.document.state(0)
+      MathJax.texReset()
+      MathJax.typesetPromise()
+    }
+  }
+
+  btf.addGlobalFn('encrypt', loadMathjax, 'mathjax')
+  window.pjax ? loadMathjax() : window.addEventListener('load', loadMathjax)
+})()</script></div><script defer data-pjax src="/Kamonto_blog/js/readPercent.js"></script><script async src="https://cdn1.tianli0.top/npm/vue@2.6.14/dist/vue.min.js"></script><script async src="https://cdn1.tianli0.top/npm/element-ui@2.15.6/lib/index.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = true;
+document.body.addEventListener('input', POWERMODE);
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/metingjs/dist/Meting.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="text-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/Kamonto_blog/js/search/local-search.js"></script></div></div></body></html>

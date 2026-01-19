@@ -216,7 +216,7 @@ template {
 .search-dialog hr:before {
   display: inline-block;
   font-weight: 600;
-  font-family: 'Font Awesome 6 Free';
+  font-family: 'Font Awesome 7 Free';
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
 }
@@ -346,7 +346,7 @@ template {
   left: 5%;
   z-index: 1;
   color: var(--hr-before-color);
-  content: '\f2dc';
+  content: '\f005';
   font-size: 20px;
   line-height: 1;
   -webkit-transition: all 1s ease-in-out;

@@ -531,7 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (detectItem === currentIndex) return
 
-      // if (isAnchor) btf.updateAnchor(currentId)
+      if (isAnchor) btf.updateAnchor(currentId)
 
       detectItem = currentIndex
 

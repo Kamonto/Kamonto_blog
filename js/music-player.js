@@ -725,7 +725,7 @@
 
   async function init() {
     try {
-      const response = await fetch(`${root}music/music-library.json`, { cache: 'no-cache' })
+      const response = await fetch(`/Kamonto_blog/audio/music-library.json`, { cache: 'no-cache' })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const data = await response.json()
       if (!data || !Array.isArray(data.tracks)) throw new Error('music-library.json 中缺少 tracks 数组。')

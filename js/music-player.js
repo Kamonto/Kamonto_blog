@@ -4,12 +4,11 @@
   if (window.KMusicPlayer && window.KMusicPlayer.ready) return
 
   const STORAGE_KEY = 'kmusic-player-state-v1'
-  const MODES = ['list', 'one', 'shuffle', 'order']
+  const MODES = ['list', 'one', 'shuffle']
   const MODE_META = {
     list: { label: '列表循环', icon: 'fa-redo-alt' },
     one: { label: '单曲循环', icon: 'fa-redo' },
-    shuffle: { label: '随机播放', icon: 'fa-random' },
-    order: { label: '顺序播放', icon: 'fa-long-arrow-alt-right' }
+    shuffle: { label: '随机播放', icon: 'fa-random' }
   }
   const root = normalizeRoot(window.GLOBAL_CONFIG && window.GLOBAL_CONFIG.root)
   const audio = new Audio()
@@ -28,7 +27,11 @@
     savedPosition: 0,
     positionRestored: false,
     isSeeking: false,
-    pendingSeekTime: 0,
+    pendingSeekTime: null,
+    pendingSeekStartedAt: 0,
+    lastSeekApplyAt: 0,
+    seekApplyAttempts: 0,
+    seekRetryTimer: 0,
     lastPersistAt: 0,
     initialized: false,
     error: ''
@@ -115,7 +118,7 @@
       muted: state.muted,
       collapsed: state.collapsed,
       playing: !audio.paused && !audio.ended,
-      currentTime: Number(audio.currentTime) || 0,
+      currentTime: getEffectiveCurrentTime(),
       duration: Number(audio.duration) || Number(currentTrack()?.duration) || 0
     }
   }
@@ -143,7 +146,7 @@
         volume: state.volume,
         muted: state.muted,
         collapsed: state.collapsed,
-        currentTime: Number(audio.currentTime) || 0
+        currentTime: getEffectiveCurrentTime()
       }))
     } catch (error) {
       console.warn('[KMusic] 无法保存播放器状态。', error)
@@ -228,6 +231,7 @@
     el.status = wrapper.querySelector('.kmusic-player__status')
     el.queueList = wrapper.querySelector('.kmusic-player__queue-list')
     el.queueCount = wrapper.querySelector('.kmusic-player__queue-count')
+    el.libraryLink = wrapper.querySelector('.kmusic-player__library-link')
     el.error = wrapper.querySelector('.kmusic-player__error')
   }
 
@@ -282,19 +286,7 @@
       const ratio = Math.min(1, Math.max(0, Number(el.progress.value) / 1000))
       const targetTime = duration * ratio
       state.isSeeking = false
-      state.pendingSeekTime = targetTime
-      state.savedPosition = targetTime
-
-      try {
-        // 使用真实媒体时长进行最终限位；metadata 尚未完成时由 loadedmetadata 再次恢复。
-        const mediaDuration = Number(audio.duration)
-        const maxTime = Number.isFinite(mediaDuration) && mediaDuration > 0 ? mediaDuration : duration
-        audio.currentTime = Math.min(targetTime, maxTime)
-        state.positionRestored = true
-      } catch (_) {
-        state.positionRestored = false
-      }
-
+      queuePendingSeek(targetTime)
       updateProgress(true)
       persist(true)
       emit('seek', { currentTime: targetTime })
@@ -309,7 +301,21 @@
     el.progress.addEventListener('touchend', commitSeek)
     el.progress.addEventListener('pointercancel', () => {
       state.isSeeking = false
+      resetPendingSeek()
       updateProgress(true)
+    })
+
+    el.libraryLink.addEventListener('click', event => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+      event.preventDefault()
+      event.stopPropagation()
+
+      const targetUrl = el.libraryLink.getAttribute('href') || '/Kamonto_blog/music'
+      if (window.pjax && typeof window.pjax.loadUrl === 'function') {
+        window.pjax.loadUrl(targetUrl)
+      } else {
+        window.location.assign(targetUrl)
+      }
     })
 
     el.volume.addEventListener('input', () => {
@@ -352,16 +358,26 @@
     })
 
     audio.addEventListener('loadedmetadata', () => {
-      if (!state.positionRestored && state.savedPosition > 0 && state.savedPosition < audio.duration - 2) {
-        try { audio.currentTime = state.savedPosition } catch (_) {}
+      if (state.pendingSeekTime === null && !state.positionRestored && state.savedPosition > 0) {
+        queuePendingSeek(state.savedPosition, { applyImmediately: false })
       }
-      state.positionRestored = true
-      state.pendingSeekTime = Number(audio.currentTime) || 0
+      applyPendingSeek(true)
       updateProgress(true)
     })
 
-    audio.addEventListener('durationchange', updateProgress)
+    audio.addEventListener('loadeddata', () => applyPendingSeek(true))
+    audio.addEventListener('durationchange', () => {
+      applyPendingSeek(true)
+      updateProgress()
+    })
+    audio.addEventListener('seeking', () => updateProgress(true))
+    audio.addEventListener('seeked', () => {
+      confirmPendingSeek()
+      updateProgress(true)
+      persist(true)
+    })
     audio.addEventListener('timeupdate', () => {
+      confirmPendingSeek()
       updateProgress()
       persist(false)
     })
@@ -369,6 +385,7 @@
     audio.addEventListener('ended', handleEnded)
     audio.addEventListener('waiting', () => setStatus('正在缓冲…'))
     audio.addEventListener('canplay', () => {
+      applyPendingSeek(true)
       if (!audio.paused) setStatus('正在播放')
     })
 
@@ -412,9 +429,11 @@
     showError('')
     state.positionRestored = false
     state.isSeeking = false
-    state.pendingSeekTime = 0
+    resetPendingSeek()
     if (!preservePosition) {
       state.savedPosition = 0
+    } else if (state.savedPosition > 0) {
+      queuePendingSeek(state.savedPosition, { applyImmediately: false })
     }
 
     if (!track) {
@@ -516,13 +535,6 @@
     if (state.mode === 'shuffle') {
       state.currentIndex = state.queue.length > 1 ? randomIndexExcept(state.currentIndex) : 0
       return loadCurrent({ autoplay: true })
-    }
-    if (state.mode === 'order' && state.currentIndex >= state.queue.length - 1) {
-      audio.currentTime = 0
-      updatePlayUi()
-      setStatus('队列播放完毕')
-      persist(true)
-      return
     }
     state.currentIndex = (state.currentIndex + 1) % state.queue.length
     loadCurrent({ autoplay: true })
@@ -687,10 +699,99 @@
     return Math.max(0, Number(currentTrack()?.duration) || 0)
   }
 
+  function getEffectiveCurrentTime() {
+    if (state.pendingSeekTime !== null) return Math.max(0, Number(state.pendingSeekTime) || 0)
+    return Math.max(0, Number(audio.currentTime) || 0)
+  }
+
+  function resetPendingSeek() {
+    if (state.seekRetryTimer) window.clearTimeout(state.seekRetryTimer)
+    state.seekRetryTimer = 0
+    state.pendingSeekTime = null
+    state.pendingSeekStartedAt = 0
+    state.lastSeekApplyAt = 0
+    state.seekApplyAttempts = 0
+  }
+
+  function queuePendingSeek(targetTime, options = {}) {
+    const duration = getPlaybackDuration()
+    const rawTarget = Math.max(0, Number(targetTime) || 0)
+    const target = duration > 0 ? Math.min(rawTarget, duration) : rawTarget
+
+    if (state.seekRetryTimer) window.clearTimeout(state.seekRetryTimer)
+    state.pendingSeekTime = target
+    state.pendingSeekStartedAt = Date.now()
+    state.lastSeekApplyAt = 0
+    state.seekApplyAttempts = 0
+    state.savedPosition = target
+    state.positionRestored = false
+
+    if (options.applyImmediately !== false) applyPendingSeek(true)
+  }
+
+  function scheduleSeekRetry() {
+    if (state.pendingSeekTime === null || state.seekRetryTimer || state.seekApplyAttempts >= 12) return
+    const elapsed = Math.max(0, Date.now() - state.pendingSeekStartedAt)
+    const retryDelay = Math.min(1200, 100 + Math.floor(elapsed / 600) * 100)
+    state.seekRetryTimer = window.setTimeout(() => {
+      state.seekRetryTimer = 0
+      if (state.pendingSeekTime === null) return
+      applyPendingSeek(true)
+      confirmPendingSeek()
+    }, retryDelay)
+  }
+
+  function applyPendingSeek(force = false) {
+    if (state.pendingSeekTime === null) return false
+
+    const mediaDuration = Number(audio.duration)
+    if (!Number.isFinite(mediaDuration) || mediaDuration <= 0 || audio.readyState < 1) {
+      scheduleSeekRetry()
+      return false
+    }
+
+    const now = Date.now()
+    if (!force && now - state.lastSeekApplyAt < 180) return false
+
+    const target = Math.min(Math.max(0, Number(state.pendingSeekTime) || 0), mediaDuration)
+    state.pendingSeekTime = target
+    state.lastSeekApplyAt = now
+    state.seekApplyAttempts += 1
+
+    try {
+      audio.currentTime = target
+      scheduleSeekRetry()
+      return true
+    } catch (_) {
+      scheduleSeekRetry()
+      return false
+    }
+  }
+
+  function confirmPendingSeek() {
+    if (state.pendingSeekTime === null) return true
+
+    const actual = Math.max(0, Number(audio.currentTime) || 0)
+    const target = Math.max(0, Number(state.pendingSeekTime) || 0)
+    const duration = getPlaybackDuration()
+    const reachedTarget = Math.abs(actual - target) <= 0.8 ||
+      (duration > 0 && target >= duration - 0.8 && actual >= duration - 1.2)
+
+    if (reachedTarget) {
+      state.savedPosition = actual
+      state.positionRestored = true
+      resetPendingSeek()
+      return true
+    }
+
+    applyPendingSeek()
+    return false
+  }
+
   function updateProgress(force = false) {
     if (state.isSeeking && !force) return
     const duration = getPlaybackDuration()
-    const current = Math.min(Number(audio.currentTime) || state.pendingSeekTime || 0, duration || Infinity)
+    const current = Math.min(getEffectiveCurrentTime(), duration || Infinity)
     el.currentTime.textContent = formatTime(current)
     el.duration.textContent = formatTime(duration)
     el.progress.value = duration > 0 ? String(Math.round((current / duration) * 1000)) : '0'

@@ -27,6 +27,8 @@
     queueOpen: false,
     savedPosition: 0,
     positionRestored: false,
+    isSeeking: false,
+    pendingSeekTime: 0,
     lastPersistAt: 0,
     initialized: false,
     error: ''
@@ -39,12 +41,29 @@
     return raw.endsWith('/') ? raw : `${raw}/`
   }
 
+  function encodePathSegment(segment) {
+    if (!segment) return ''
+    try {
+      return encodeURIComponent(decodeURIComponent(segment))
+    } catch (_) {
+      return encodeURIComponent(segment)
+    }
+  }
+
   function assetUrl(path) {
     if (!path) return ''
-    if (/^(?:https?:)?\/\//i.test(path) || /^(?:data|blob):/i.test(path)) return path
-    const clean = String(path).replace(/^\/+/, '')
-    const encoded = clean.split('/').map(segment => encodeURIComponent(segment)).join('/')
-    return `${root}${encoded}`
+    const raw = String(path).trim()
+    if (/^(?:https?:)?\/\//i.test(raw) || /^(?:data|blob):/i.test(raw)) return raw
+
+    const parts = raw.match(/^([^?#]*)([?#].*)?$/)
+    const pathname = parts ? parts[1] : raw
+    const suffix = parts && parts[2] ? parts[2] : ''
+    // music-library.json 中以 /Kamonto_blog/ 开头的路径已经是部署路径，不能再次拼接 root。
+    const localPath = pathname.startsWith('/')
+      ? pathname
+      : `${root}${pathname.replace(/^\/+/, '')}`
+    const encodedPath = localPath.split('/').map(encodePathSegment).join('/')
+    return `${encodedPath}${suffix}`
   }
 
   function text(value) {
@@ -182,7 +201,7 @@
           <span class="kmusic-player__status">音乐库已就绪</span>
           <button type="button" class="kmusic-player__button kmusic-player__button--mute" data-kmusic-action="mute" title="静音" aria-label="静音"><i class="fas fa-volume-up"></i></button>
           <input class="kmusic-player__range kmusic-player__volume" type="range" min="0" max="1" value="0.75" step="0.01" aria-label="音量">
-          <a class="kmusic-player__library-link" href="${escapeHtml(`${root}music/`)}" title="打开音乐馆" aria-label="打开音乐馆"><i class="fas fa-compact-disc"></i></a>
+          <a class="kmusic-player__library-link" href="/Kamonto_blog/music" title="打开音乐馆" aria-label="打开音乐馆"><i class="fas fa-compact-disc"></i></a>
         </div>
       </div>`
 
@@ -244,12 +263,53 @@
       }
     })
 
-    el.progress.addEventListener('input', () => {
-      const duration = Number(audio.duration) || Number(currentTrack()?.duration) || 0
-      if (duration > 0) {
-        audio.currentTime = (Number(el.progress.value) / 1000) * duration
-        updateProgress()
+    const beginSeek = () => {
+      state.isSeeking = true
+    }
+
+    const previewSeek = () => {
+      state.isSeeking = true
+      const duration = getPlaybackDuration()
+      const ratio = Math.min(1, Math.max(0, Number(el.progress.value) / 1000))
+      state.pendingSeekTime = duration * ratio
+      el.currentTime.textContent = formatTime(state.pendingSeekTime)
+      el.duration.textContent = formatTime(duration)
+    }
+
+    const commitSeek = () => {
+      if (!state.isSeeking) return
+      const duration = getPlaybackDuration()
+      const ratio = Math.min(1, Math.max(0, Number(el.progress.value) / 1000))
+      const targetTime = duration * ratio
+      state.isSeeking = false
+      state.pendingSeekTime = targetTime
+      state.savedPosition = targetTime
+
+      try {
+        // 使用真实媒体时长进行最终限位；metadata 尚未完成时由 loadedmetadata 再次恢复。
+        const mediaDuration = Number(audio.duration)
+        const maxTime = Number.isFinite(mediaDuration) && mediaDuration > 0 ? mediaDuration : duration
+        audio.currentTime = Math.min(targetTime, maxTime)
+        state.positionRestored = true
+      } catch (_) {
+        state.positionRestored = false
       }
+
+      updateProgress(true)
+      persist(true)
+      emit('seek', { currentTime: targetTime })
+    }
+
+    el.progress.addEventListener('pointerdown', beginSeek)
+    el.progress.addEventListener('mousedown', beginSeek)
+    el.progress.addEventListener('touchstart', beginSeek, { passive: true })
+    el.progress.addEventListener('input', previewSeek)
+    el.progress.addEventListener('change', commitSeek)
+    el.progress.addEventListener('pointerup', commitSeek)
+    el.progress.addEventListener('touchend', commitSeek)
+    el.progress.addEventListener('pointercancel', () => {
+      state.isSeeking = false
+      updateProgress(true)
     })
 
     el.volume.addEventListener('input', () => {
@@ -296,7 +356,8 @@
         try { audio.currentTime = state.savedPosition } catch (_) {}
       }
       state.positionRestored = true
-      updateProgress()
+      state.pendingSeekTime = Number(audio.currentTime) || 0
+      updateProgress(true)
     })
 
     audio.addEventListener('durationchange', updateProgress)
@@ -350,6 +411,8 @@
     state.error = ''
     showError('')
     state.positionRestored = false
+    state.isSeeking = false
+    state.pendingSeekTime = 0
     if (!preservePosition) {
       state.savedPosition = 0
     }
@@ -618,9 +681,16 @@
     el.playButton.setAttribute('aria-label', playing ? '暂停' : '播放')
   }
 
-  function updateProgress() {
-    const duration = Number(audio.duration) || Number(currentTrack()?.duration) || 0
-    const current = Math.min(Number(audio.currentTime) || 0, duration || Infinity)
+  function getPlaybackDuration() {
+    const mediaDuration = Number(audio.duration)
+    if (Number.isFinite(mediaDuration) && mediaDuration > 0) return mediaDuration
+    return Math.max(0, Number(currentTrack()?.duration) || 0)
+  }
+
+  function updateProgress(force = false) {
+    if (state.isSeeking && !force) return
+    const duration = getPlaybackDuration()
+    const current = Math.min(Number(audio.currentTime) || state.pendingSeekTime || 0, duration || Infinity)
     el.currentTime.textContent = formatTime(current)
     el.duration.textContent = formatTime(duration)
     el.progress.value = duration > 0 ? String(Math.round((current / duration) * 1000)) : '0'
@@ -628,10 +698,14 @@
 
   function updateModeUi() {
     const meta = MODE_META[state.mode]
+    // 直接同步原生 Audio.loop，第一次切换到单曲循环后立即生效。
+    audio.loop = state.mode === 'one'
     el.modeIcon.className = `fas ${meta.icon}`
+    el.modeButton.dataset.mode = state.mode
     el.modeButton.title = `${meta.label}（点击切换）`
     el.modeButton.setAttribute('aria-label', `当前为${meta.label}，点击切换`)
-    el.modeButton.classList.toggle('is-active', state.mode !== 'order')
+    // 激活模式只保留图标强调，底色仅在鼠标真正悬浮时显示。
+    el.modeButton.classList.toggle('is-active', state.mode === 'one' || state.mode === 'shuffle')
   }
 
   function updateVolumeUi() {

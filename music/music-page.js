@@ -1,6 +1,12 @@
 (() => {
   'use strict'
 
+  if (window.KMusicLibraryPage && typeof window.KMusicLibraryPage.destroy === 'function') {
+    window.KMusicLibraryPage.destroy()
+  }
+
+  const lifecycle = new AbortController()
+  const signal = lifecycle.signal
   const root = normalizeRoot(window.GLOBAL_CONFIG && window.GLOBAL_CONFIG.root)
   const elements = {}
   const state = {
@@ -17,12 +23,29 @@
     return raw.endsWith('/') ? raw : `${raw}/`
   }
 
+  function encodePathSegment(segment) {
+    if (!segment) return ''
+    try {
+      return encodeURIComponent(decodeURIComponent(segment))
+    } catch (_) {
+      return encodeURIComponent(segment)
+    }
+  }
+
   function assetUrl(path) {
     if (!path) return ''
-    if (/^(?:https?:)?\/\//i.test(path) || /^(?:data|blob):/i.test(path)) return path
-    const clean = String(path).replace(/^\/+/, '')
-    const encoded = clean.split('/').map(segment => encodeURIComponent(segment)).join('/')
-    return `${root}${encoded}`
+    const raw = String(path).trim()
+    if (/^(?:https?:)?\/\//i.test(raw) || /^(?:data|blob):/i.test(raw)) return raw
+
+    const parts = raw.match(/^([^?#]*)([?#].*)?$/)
+    const pathname = parts ? parts[1] : raw
+    const suffix = parts && parts[2] ? parts[2] : ''
+    // music-library.json 中以 /Kamonto_blog/ 开头的路径已经是部署路径，不能再次拼接 root。
+    const localPath = pathname.startsWith('/')
+      ? pathname
+      : `${root}${pathname.replace(/^\/+/, '')}`
+    const encodedPath = localPath.split('/').map(encodePathSegment).join('/')
+    return `${encodedPath}${suffix}`
   }
 
   function text(value) {
@@ -324,9 +347,9 @@
       }
     })
 
-    window.addEventListener('kmusic:ready', () => connectPlayer())
-    window.addEventListener('kmusic:queuechange', renderQueue)
-    window.addEventListener('kmusic:trackchange', renderQueue)
+    window.addEventListener('kmusic:ready', () => connectPlayer(), { signal })
+    window.addEventListener('kmusic:queuechange', renderQueue, { signal })
+    window.addEventListener('kmusic:trackchange', renderQueue, { signal })
   }
 
   function showToast(message) {
@@ -336,6 +359,17 @@
     window.clearTimeout(state.toastTimer)
     state.toastTimer = window.setTimeout(() => elements.toast.classList.remove('is-visible'), 2200)
   }
+
+  function destroy() {
+    lifecycle.abort()
+    window.clearTimeout(state.toastTimer)
+    if (window.KMusicLibraryPage && window.KMusicLibraryPage.destroy === destroy) {
+      delete window.KMusicLibraryPage
+    }
+  }
+
+  window.KMusicLibraryPage = { destroy }
+  document.addEventListener('pjax:send', destroy, { once: true, signal })
 
   async function init() {
     const rootElement = document.getElementById('kmusic-library')

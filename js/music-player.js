@@ -7,8 +7,8 @@
   const MODES = ['list', 'one', 'shuffle']
   const MODE_META = {
     list: { label: '列表循环', icon: 'fa-long-arrow-alt-right' },
-    one: { label: '单曲循环', icon: 'fa-redo-alt' },
-    shuffle: { label: '随机播放', icon: 'fa-random-alt' }
+    one: { label: '单曲循环', icon: 'fa-redo' },
+    shuffle: { label: '随机播放', icon: 'fa-random' }
   }
   const root = normalizeRoot(window.GLOBAL_CONFIG && window.GLOBAL_CONFIG.root)
   const audio = new Audio()
@@ -28,10 +28,8 @@
     positionRestored: false,
     isSeeking: false,
     pendingSeekTime: null,
-    pendingSeekStartedAt: 0,
-    lastSeekApplyAt: 0,
-    seekApplyAttempts: 0,
-    seekRetryTimer: 0,
+    pendingSeekApplied: false,
+    seekSettleTimer: 0,
     lastPersistAt: 0,
     initialized: false,
     error: ''
@@ -187,7 +185,7 @@
 
         <div class="kmusic-player__center">
           <div class="kmusic-player__controls">
-            <button type="button" class="kmusic-player__button kmusic-player__button--mode" data-kmusic-action="mode" title="列表循环" aria-label="切换播放模式"><i class="fas fa-redo-alt"></i></button>
+            <button type="button" class="kmusic-player__button kmusic-player__button--mode" data-kmusic-action="mode" title="列表循环" aria-label="切换播放模式"><i class="fas fa-long-arrow-alt-right"></i></button>
             <button type="button" class="kmusic-player__button" data-kmusic-action="previous" title="上一首" aria-label="上一首"><i class="fas fa-step-backward"></i></button>
             <button type="button" class="kmusic-player__button kmusic-player__button--play" data-kmusic-action="play" title="播放" aria-label="播放"><i class="fas fa-play"></i></button>
             <button type="button" class="kmusic-player__button" data-kmusic-action="next" title="下一首" aria-label="下一首"><i class="fas fa-step-forward"></i></button>
@@ -365,19 +363,18 @@
       updateProgress(true)
     })
 
-    audio.addEventListener('loadeddata', () => applyPendingSeek(true))
+    audio.addEventListener('loadeddata', () => applyPendingSeek())
     audio.addEventListener('durationchange', () => {
-      applyPendingSeek(true)
+      applyPendingSeek()
       updateProgress()
     })
     audio.addEventListener('seeking', () => updateProgress(true))
     audio.addEventListener('seeked', () => {
-      confirmPendingSeek()
+      settlePendingSeek()
       updateProgress(true)
       persist(true)
     })
     audio.addEventListener('timeupdate', () => {
-      confirmPendingSeek()
       updateProgress()
       persist(false)
     })
@@ -385,7 +382,7 @@
     audio.addEventListener('ended', handleEnded)
     audio.addEventListener('waiting', () => setStatus('正在缓冲…'))
     audio.addEventListener('canplay', () => {
-      applyPendingSeek(true)
+      applyPendingSeek()
       if (!audio.paused) setStatus('正在播放')
     })
 
@@ -705,12 +702,10 @@
   }
 
   function resetPendingSeek() {
-    if (state.seekRetryTimer) window.clearTimeout(state.seekRetryTimer)
-    state.seekRetryTimer = 0
+    if (state.seekSettleTimer) window.clearTimeout(state.seekSettleTimer)
+    state.seekSettleTimer = 0
     state.pendingSeekTime = null
-    state.pendingSeekStartedAt = 0
-    state.lastSeekApplyAt = 0
-    state.seekApplyAttempts = 0
+    state.pendingSeekApplied = false
   }
 
   function queuePendingSeek(targetTime, options = {}) {
@@ -718,74 +713,53 @@
     const rawTarget = Math.max(0, Number(targetTime) || 0)
     const target = duration > 0 ? Math.min(rawTarget, duration) : rawTarget
 
-    if (state.seekRetryTimer) window.clearTimeout(state.seekRetryTimer)
+    if (state.seekSettleTimer) window.clearTimeout(state.seekSettleTimer)
+    state.seekSettleTimer = 0
     state.pendingSeekTime = target
-    state.pendingSeekStartedAt = Date.now()
-    state.lastSeekApplyAt = 0
-    state.seekApplyAttempts = 0
+    state.pendingSeekApplied = false
     state.savedPosition = target
     state.positionRestored = false
 
-    if (options.applyImmediately !== false) applyPendingSeek(true)
+    if (options.applyImmediately !== false) applyPendingSeek()
   }
 
-  function scheduleSeekRetry() {
-    if (state.pendingSeekTime === null || state.seekRetryTimer || state.seekApplyAttempts >= 12) return
-    const elapsed = Math.max(0, Date.now() - state.pendingSeekStartedAt)
-    const retryDelay = Math.min(1200, 100 + Math.floor(elapsed / 600) * 100)
-    state.seekRetryTimer = window.setTimeout(() => {
-      state.seekRetryTimer = 0
-      if (state.pendingSeekTime === null) return
-      applyPendingSeek(true)
-      confirmPendingSeek()
-    }, retryDelay)
-  }
-
-  function applyPendingSeek(force = false) {
-    if (state.pendingSeekTime === null) return false
+  function applyPendingSeek() {
+    if (state.pendingSeekTime === null || state.pendingSeekApplied) return false
 
     const mediaDuration = Number(audio.duration)
-    if (!Number.isFinite(mediaDuration) || mediaDuration <= 0 || audio.readyState < 1) {
-      scheduleSeekRetry()
-      return false
-    }
-
-    const now = Date.now()
-    if (!force && now - state.lastSeekApplyAt < 180) return false
+    if (!Number.isFinite(mediaDuration) || mediaDuration <= 0 || audio.readyState < 1) return false
 
     const target = Math.min(Math.max(0, Number(state.pendingSeekTime) || 0), mediaDuration)
     state.pendingSeekTime = target
-    state.lastSeekApplyAt = now
-    state.seekApplyAttempts += 1
 
     try {
+      // 每次拖动只提交一次 currentTime。重复赋值会不断触发 seeking/waiting，
+      // 导致播放器在“正在缓冲”和“正在播放”之间循环。
+      state.pendingSeekApplied = true
       audio.currentTime = target
-      scheduleSeekRetry()
+
+      // 极少数浏览器不会派发 seeked；超时只做状态收敛，不再次跳转。
+      state.seekSettleTimer = window.setTimeout(() => {
+        if (state.pendingSeekTime === null) return
+        settlePendingSeek()
+        updateProgress(true)
+        persist(true)
+      }, 2000)
       return true
     } catch (_) {
-      scheduleSeekRetry()
+      state.pendingSeekApplied = false
       return false
     }
   }
 
-  function confirmPendingSeek() {
+  function settlePendingSeek() {
     if (state.pendingSeekTime === null) return true
 
     const actual = Math.max(0, Number(audio.currentTime) || 0)
-    const target = Math.max(0, Number(state.pendingSeekTime) || 0)
-    const duration = getPlaybackDuration()
-    const reachedTarget = Math.abs(actual - target) <= 0.8 ||
-      (duration > 0 && target >= duration - 0.8 && actual >= duration - 1.2)
-
-    if (reachedTarget) {
-      state.savedPosition = actual
-      state.positionRestored = true
-      resetPendingSeek()
-      return true
-    }
-
-    applyPendingSeek()
-    return false
+    state.savedPosition = actual
+    state.positionRestored = true
+    resetPendingSeek()
+    return true
   }
 
   function updateProgress(force = false) {
@@ -805,8 +779,8 @@
     el.modeButton.dataset.mode = state.mode
     el.modeButton.title = `${meta.label}（点击切换）`
     el.modeButton.setAttribute('aria-label', `当前为${meta.label}，点击切换`)
-    // 激活模式只保留图标强调，底色仅在鼠标真正悬浮时显示。
-    el.modeButton.classList.toggle('is-active', state.mode === 'one' || state.mode === 'shuffle')
+    // 三种模式在非悬浮状态下统一使用黑色图标，不再保留激活态颜色。
+    el.modeButton.classList.remove('is-active')
   }
 
   function updateVolumeUi() {

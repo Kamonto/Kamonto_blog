@@ -104,3 +104,8 @@ deploy:
   type: git
   repo: https://github.com/Kamonto/Kamonto_blog.git
   branch: gh-pages
+
+search:
+  path: search.xml
+  field: all
+  content: true

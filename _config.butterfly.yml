@@ -12,10 +12,14 @@ nav:
 
 menu:
   首页: / || fas fa-home
-  标签: / || fas fa-tag
+  归档: /archives/ || fas fa-archive
+  标签: /tags/ || fas fa-tags
+  分类: /categories/ || fas fa-folder-open
   列表||fas fa-list:
     音乐: /music/ || fas fa-music
     电影: /movies/ || fas fa-video
+  友链: /link/ || fas fa-link
+  关于: /about/ || fas fa-heart
 
 # --------------------------------------
 # 代码块设置
@@ -23,11 +27,11 @@ menu:
 
 code_blocks:
   # 代码块主题: darker / pale night / light / ocean / false
-  theme: light
+  theme: darker
   # 是否使用 Mac 风格
   macStyle: false
   # 代码块高度限制（单位: px）
-  height_limit: false
+  height_limit: 230
   # 是否自动换行
   word_wrap: false
 
@@ -45,18 +49,20 @@ code_blocks:
 # 格式:
 #   icon: 链接 || 描述 || 颜色
 social:
+  fab fa-github: https://github.com/Kamonto || Github
+  fas fa-envelope: mailto:blumaha@buaa.edu.cn || Email
 
 # --------------------------------------
 # 图片设置
 # --------------------------------------
 
 # 网站的 favicon 图标
-favicon: /img/favicon.png
+favicon: https://cdn.jsdelivr.net/gh/Kamonto/Kamonto_blog@gh-pages/img/star-solid2.svg
 
 # 头像设置
 avatar:
   # 头像图片链接
-  img: https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png
+  img: https://cdn.jsdelivr.net/gh/Kamonto/Kamonto_blog@gh-pages/img/profile_picture.png
   # 是否启用头像效果
   effect: false
 
@@ -67,7 +73,7 @@ disable_top_img: false
 default_top_img:
 
 # 主页的横幅图片
-index_img:
+index_img: transparent
 
 # 归档页的横幅图片
 archive_img:
@@ -94,7 +100,7 @@ footer_img: false
 # 网站背景
 # 可以设置为颜色或图片
 # 图片格式: url(http://xxxxxx.com/xxx.jpg)
-background:
+background: url('https://cdn.jsdelivr.net/gh/Kamonto/Kamonto_blog@gh-pages/img/home_background2.jpg')
 
 # 封面设置
 cover:
@@ -119,7 +125,7 @@ error_img:
 # 简单的 404 页面
 error_404:
   # 是否启用 404 页面
-  enable: false
+  enable: true
   # 404 页面的副标题
   subtitle: 'Page Not Found'
   # 404 页面的卡片背景图片
@@ -130,7 +136,7 @@ post_meta:
   # 主页页面
   page:
     # 日期类型: created / updated / both
-    date_type: created
+    date_type: both
     # 日期格式: date / relative
     date_format: date
     # 是否显示分类
@@ -168,7 +174,7 @@ index_top_img_height:
 # 首页的副标题设置
 subtitle:
   # 是否启用副标题
-  enable: false
+  enable: true
   # 是否启用打字机效果
   effect: true
   # 自定义 typed.js
@@ -183,7 +189,7 @@ subtitle:
   # 3 - jinrishici.com
   source: false
   # 如果关闭打字机效果，副标题将仅显示 sub 的第一行内容
-  sub:
+  sub: 
 
 # 首页文章佈局
 # 1: 行佈局
@@ -210,9 +216,9 @@ toc:
   # 是否在页面中显示目录
   page: false
   # 是否显示目录编号
-  number: true
+  number: false
   # 是否默认展开目录
-  expand: false
+  expand: true
   # 是否使用简洁风格（仅适用于文章）
   style_simple: false
   # 是否显示滚动百分比
@@ -289,9 +295,9 @@ footer:
     # 是否启用所有者显示
     enable: true
     # 网站创建年份
-    since: 2019
+    since: 2025
   # 自定义文本
-  custom_text:
+  custom_text: "背景图: 夜空 | 花本 #pixiv https://www.pixiv.net/artworks/97261750"
   # 主题和框架的版权声明
   copyright: true
 
@@ -330,17 +336,17 @@ aside:
       # 按钮文本
       text: Follow Me
       # 按钮链接
-      link: https://github.com/xxxxxx
+      link: https://github.com/Kamonto
   card_announcement:
     # 是否显示公告卡片
     enable: true
     # 公告内容
-    content: This is my Blog
+    content: Kamonto 博客开业啦！新鲜热乎！
   card_recent_post:
     # 是否显示最近文章卡片
     enable: true
     # 显示文章数量，0 表示显示所有
-    limit: 5
+    limit: 3
     # 排序方式：date / updated
     sort: date
     sort_order:
@@ -489,7 +495,7 @@ copy:
 # 需要安装 hexo-wordcount 插件
 wordcount:
   # 是否启用字数统计
-  enable: false
+  enable: true
   # 在文章元信息中显示字数统计
   post_wordcount: true
   # 在文章元信息中显示閲读时间
@@ -516,7 +522,7 @@ busuanzi:
 math:
   # 选择：mathjax, katex
   # 如果不需要数学公式，保持为空
-  use:
+  use: mathjax
   per_page: true
   hide_scrollbar: false
 
@@ -528,7 +534,7 @@ math:
 
   katex:
     # 启用复制 KaTeX 公式
-    copy_tex: false
+    copy_tex: true
 
 # --------------------------------------
 # 搜索设置
@@ -537,7 +543,7 @@ math:
 search:
   # 选择：algolia_search / local_search / docsearch
   # 如果不需要搜索功能，保持为空
-  use:
+  use: local_search
   placeholder:
 
   # Algolia 搜索
@@ -843,39 +849,39 @@ site_verification:
 # 注意：颜色值必须用双引号，如 "#000"，否则可能会导致错误！
 
 # 主题颜色配置
-# theme_color:
+theme_color:
 #   是否启用主题颜色
-#   enable: true
+  enable: true
 #   主颜色
-#   main: "#49B1F5"
+  main: "#49B1F5"
 #   分页器颜色
-#   paginator: "#00c4b6"
+  paginator: "#39c5bb"
 #   按钮悬停颜色
-#   button_hover: "#FF7242"
+  button_hover: "#FF7242"
 #   文本选择颜色
-#   text_selection: "#00c4b6"
+  text_selection: "#39c5bb"
 #   链接颜色
-#   link_color: "#99a9bf"
+  link_color: "#6E90B9"
 #   元数据颜色
-#   meta_color: "#858585"
+  meta_color: "#858585"
 #   水平线颜色
-#   hr_color: "#A4D8FA"
+  hr_color: "#A4D8FA"
 #   代码前景色
-#   code_foreground: "#F47466"
+  code_foreground: "#F47466"
 #   代码背景色
-#   code_background: "rgba(27, 31, 35, .05)"
+  code_background: "rgba(27, 31, 35, .05)"
 #   目录颜色
-#   toc_color: "#00c4b6"
+  toc_color: "#39c5bb"
 #   引用块填充颜色
-#   blockquote_padding_color: "#49b1f5"
+  blockquote_padding_color: "#49b1f5"
 #   引用块背景颜色
-#   blockquote_background_color: "#49b1f5"
+  blockquote_background_color: "#49b1f5"
 #   滚动条颜色
-#   scrollbar_color: "#49b1f5"
+  scrollbar_color: "#49b1f5"
 #   浅色模式下的主题颜色
-#   meta_theme_color_light: "ffffff"
+  meta_theme_color_light: "#ffffff"
 #   深色模式下的主题颜色
-#   meta_theme_color_dark: "#0d0d0d"
+  meta_theme_color_dark: "#0d0d0d"
 
 # 分类和标签页面的用户界面设置
 # 选择：index - 与主页 UI 相同 / default - 与归档 UI 相同
@@ -937,20 +943,20 @@ hr_icon:
   # 是否启用分隔符图标
   enable: true
   # Font Awesome 图标的 unicode 值，如 '\3423'
-  icon:
-  icon-top:
+  icon: '\f005'
+  icon-top: -10px
 
 # 打字机效果
 # https://github.com/disjukr/activate-power-mode
 activate_power_mode:
   # 是否启用打字机效果
-  enable: false
+  enable: true
   # 是否启用彩色效果
   colorful: true
   # 是否启用震动效果
-  shake: true
+  shake: false
   # 是否在移动设备上启用
-  mobile: false
+  mobile: true
 
 # 背景效果
 # --------------------------------------
@@ -1117,7 +1123,7 @@ pjax:
 # 注入 CSS 和脚本 (aplayer/meting)
 aplayerInject:
   # 是否启用注入
-  enable: false
+  enable: true
   # 是否每页启用
   per_page: true
 
@@ -1126,28 +1132,28 @@ aplayerInject:
 # 位置: top-left / top-center / top-right / bottom-left / bottom-center / bottom-right
 snackbar:
   # 是否启用 Snackbar
-  enable: false
+  enable: true
   # 通知位置
-  position: bottom-left
+  position: top-right
   # 浅色模式和深色模式下的通知背景颜色
   bg_light: '#49b1f5'
   bg_dark: '#1f1f1f'
 
 # Instant.page
 # https://instant.page/
-instantpage: false
+instantpage: true
 
 # Lazyload
 # https://github.com/verlok/vanilla-lazyload
 lazyload:
   # 是否启用 Lazyload
-  enable: false
+  enable: true
   # 使用浏览器的原生 lazyload 而不是 vanilla-lazyload
   native: false
   # 指定使用 Lazyload 的范围 (site 或 post)
   field: site
   placeholder:
-  blur: false
+  blur: true
 
 # PWA
 # 参见 https://github.com/JLHwung/hexo-offline
@@ -1192,9 +1198,12 @@ css_prefix: true
 # 插入代码到 head（在 '</head>' 标签之前）和底部（在 '</body>' 标签之前）
 inject:
   head:
-    # - <link rel="stylesheet" href="/xxx.css">
+    - <link rel="stylesheet" href="https://cdn1.tianli0.top/npm/element-ui@2.15.6/packages/theme-chalk/lib/index.css"> # 引入组件库(f12)
+    - <link rel="stylesheet" href="/Kamonto_blog/css/custom.css" media="defer" onload="this.media='all'">
   bottom:
-    # - <script src="xxxx"></script>
+    - <script defer data-pjax src="/Kamonto_blog/js/readPercent.js"></script>
+    - <script async src="https://cdn1.tianli0.top/npm/vue@2.6.14/dist/vue.min.js"></script> # 引入VUE(f12)
+    - <script async src="https://cdn1.tianli0.top/npm/element-ui@2.15.6/lib/index.js"></script> # 引入ElementUI(f12)
 
 # CDN 设置
 # 除非你知道它们的工作原理，否则不要修改以下设置

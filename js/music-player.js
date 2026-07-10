@@ -6,9 +6,9 @@
   const STORAGE_KEY = 'kmusic-player-state-v1'
   const MODES = ['list', 'one', 'shuffle']
   const MODE_META = {
-    list: { label: '列表循环', icon: 'fa-redo-alt' },
-    one: { label: '单曲循环', icon: 'fa-redo' },
-    shuffle: { label: '随机播放', icon: 'fa-random' }
+    list: { label: '列表循环', icon: 'fa-long-arrow-alt-right' },
+    one: { label: '单曲循环', icon: 'fa-redo-alt' },
+    shuffle: { label: '随机播放', icon: 'fa-random-alt' }
   }
   const root = normalizeRoot(window.GLOBAL_CONFIG && window.GLOBAL_CONFIG.root)
   const audio = new Audio()

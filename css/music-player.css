@@ -74,7 +74,7 @@ html.kmusic-player-expanded body {
 .kmusic-player__toggle {
   position: absolute;
   left: 18px;
-  bottom: calc(var(--kmusic-bar-height) + 12px);
+  bottom: calc(var(--kmusic-bar-height) + 24px);
   display: inline-flex;
   align-items: center;
   gap: 8px;

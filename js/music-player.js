@@ -31,6 +31,11 @@
     pendingSeekApplied: false,
     seekSettleTimer: 0,
     lastPersistAt: 0,
+    shufflePool: [],
+    shuffleRecent: [],
+    shuffleBackHistory: [],
+    shuffleForwardHistory: [],
+    shuffleQueueKey: '',
     initialized: false,
     error: ''
   }
@@ -105,6 +110,182 @@
     return state.queue.length ? state.trackMap.get(state.queue[state.currentIndex]) || null : null
   }
 
+  function shuffleQueueKey() {
+    return JSON.stringify([...state.queue].sort())
+  }
+
+  function clearSmartShuffle() {
+    state.shufflePool = []
+    state.shuffleRecent = []
+    state.shuffleBackHistory = []
+    state.shuffleForwardHistory = []
+    state.shuffleQueueKey = ''
+  }
+
+  function resetSmartShuffle() {
+    const currentId = state.queue[state.currentIndex] || null
+    state.shuffleQueueKey = shuffleQueueKey()
+    state.shufflePool = state.queue.filter(id => id !== currentId)
+    state.shuffleRecent = currentId ? [currentId] : []
+    state.shuffleBackHistory = []
+    state.shuffleForwardHistory = []
+  }
+
+  function restoreSmartShuffle(savedShuffle) {
+    resetSmartShuffle()
+    if (!savedShuffle || savedShuffle.queueKey !== state.shuffleQueueKey) return
+
+    const validIds = new Set(state.queue)
+    const validHistory = ids => (Array.isArray(ids) ? ids : []).filter(id => validIds.has(id))
+    if (Array.isArray(savedShuffle.pool)) {
+      const seen = new Set()
+      state.shufflePool = savedShuffle.pool.filter(id => validIds.has(id) && !seen.has(id) && seen.add(id))
+    }
+    state.shuffleRecent = validHistory(savedShuffle.recent)
+    state.shuffleBackHistory = validHistory(savedShuffle.backHistory)
+    state.shuffleForwardHistory = validHistory(savedShuffle.forwardHistory)
+
+    const currentId = state.queue[state.currentIndex] || null
+    if (currentId && state.shuffleRecent[state.shuffleRecent.length - 1] !== currentId) {
+      pushShuffleHistory(state.shuffleRecent, currentId)
+    }
+  }
+
+  function ensureSmartShuffle() {
+    if (state.shuffleQueueKey !== shuffleQueueKey()) resetSmartShuffle()
+  }
+
+  function pushShuffleHistory(history, id) {
+    if (!id || history[history.length - 1] === id) return
+    history.push(id)
+    const limit = Math.max(24, Math.min(120, state.queue.length * 4))
+    if (history.length > limit) history.splice(0, history.length - limit)
+  }
+
+  function noteShufflePlayed(id) {
+    if (state.mode !== 'shuffle' || !id) return
+    ensureSmartShuffle()
+    state.shufflePool = state.shufflePool.filter(candidateId => candidateId !== id)
+    pushShuffleHistory(state.shuffleRecent, id)
+  }
+
+  function normalizedPeople(track, keys) {
+    const values = keys.flatMap(key => {
+      const value = track && track[key]
+      return Array.isArray(value) ? value : value ? [value] : []
+    })
+    return new Set(values.map(value => String(value).toLocaleLowerCase().normalize('NFKC').trim()).filter(Boolean))
+  }
+
+  function overlapCount(left, right) {
+    let count = 0
+    left.forEach(value => {
+      if (right.has(value)) count += 1
+    })
+    return count
+  }
+
+  function shuffleCandidatePenalty(candidateId) {
+    const candidate = state.trackMap.get(candidateId)
+    if (!candidate) return Number.POSITIVE_INFINITY
+
+    const windowSize = Math.min(6, Math.max(2, Math.round(Math.sqrt(state.queue.length))))
+    const recentIds = state.shuffleRecent.slice(-windowSize).reverse()
+    const candidateSingers = normalizedPeople(candidate, ['singers', 'artists'])
+    const candidateAuthors = normalizedPeople(candidate, ['authors', 'composers', 'author'])
+
+    return recentIds.reduce((penalty, recentId, distance) => {
+      const recencyWeight = windowSize - distance
+      if (candidateId === recentId) penalty += 100000 * recencyWeight
+      const recentTrack = state.trackMap.get(recentId)
+      if (!recentTrack) return penalty
+      const singerOverlap = overlapCount(candidateSingers, normalizedPeople(recentTrack, ['singers', 'artists']))
+      const authorOverlap = overlapCount(candidateAuthors, normalizedPeople(recentTrack, ['authors', 'composers', 'author']))
+      return penalty + singerOverlap * recencyWeight * 100 + authorOverlap * recencyWeight * 35
+    }, 0)
+  }
+
+  function drawSmartShuffleId() {
+    ensureSmartShuffle()
+    const currentId = state.queue[state.currentIndex] || null
+    if (state.queue.length <= 1) return currentId
+
+    if (!state.shufflePool.length) {
+      // 每轮把当前歌曲视为已经播放过，避免跨轮边界立即重复。
+      state.shufflePool = state.queue.filter(id => id !== currentId)
+    }
+
+    let bestPenalty = Number.POSITIVE_INFINITY
+    let bestCandidates = []
+    state.shufflePool.forEach(id => {
+      const penalty = shuffleCandidatePenalty(id)
+      if (penalty < bestPenalty) {
+        bestPenalty = penalty
+        bestCandidates = [id]
+      } else if (penalty === bestPenalty) {
+        bestCandidates.push(id)
+      }
+    })
+
+    const nextId = bestCandidates[Math.floor(Math.random() * bestCandidates.length)] || currentId
+    state.shufflePool = state.shufflePool.filter(id => id !== nextId)
+    return nextId
+  }
+
+  function rememberShuffleTransition(nextId, options = {}) {
+    if (state.mode !== 'shuffle') return
+    ensureSmartShuffle()
+    const currentId = state.queue[state.currentIndex] || null
+    if (!currentId || currentId === nextId) return
+    pushShuffleHistory(state.shuffleBackHistory, currentId)
+    if (!options.preserveForward) state.shuffleForwardHistory = []
+  }
+
+  function playSmartShuffleNext() {
+    if (!state.queue.length) return false
+    if (state.queue.length === 1) {
+      audio.currentTime = 0
+      safePlay()
+      return true
+    }
+
+    ensureSmartShuffle()
+    let nextId = null
+    while (state.shuffleForwardHistory.length && !nextId) {
+      const candidateId = state.shuffleForwardHistory.pop()
+      if (candidateId !== state.queue[state.currentIndex] && state.queue.includes(candidateId)) nextId = candidateId
+    }
+    if (!nextId) nextId = drawSmartShuffleId()
+
+    const nextIndex = state.queue.indexOf(nextId)
+    if (nextIndex < 0) return false
+    rememberShuffleTransition(nextId, { preserveForward: true })
+    state.currentIndex = nextIndex
+    loadCurrent({ autoplay: true })
+    return true
+  }
+
+  function playSmartShufflePrevious() {
+    ensureSmartShuffle()
+    const currentId = state.queue[state.currentIndex] || null
+    let previousId = null
+    while (state.shuffleBackHistory.length && !previousId) {
+      const candidateId = state.shuffleBackHistory.pop()
+      if (candidateId !== currentId && state.queue.includes(candidateId)) previousId = candidateId
+    }
+
+    if (!previousId) {
+      audio.currentTime = 0
+      safePlay()
+      return false
+    }
+
+    pushShuffleHistory(state.shuffleForwardHistory, currentId)
+    state.currentIndex = state.queue.indexOf(previousId)
+    loadCurrent({ autoplay: true })
+    return true
+  }
+
   function emit(name, detail = {}) {
     window.dispatchEvent(new CustomEvent(`kmusic:${name}`, {
       detail: { ...detail, state: publicState() }
@@ -149,7 +330,16 @@
         volume: state.volume,
         muted: state.muted,
         collapsed: state.collapsed,
-        currentTime: getEffectiveCurrentTime()
+        currentTime: getEffectiveCurrentTime(),
+        shuffleState: state.mode === 'shuffle'
+          ? {
+              queueKey: state.shuffleQueueKey,
+              pool: state.shufflePool,
+              recent: state.shuffleRecent,
+              backHistory: state.shuffleBackHistory,
+              forwardHistory: state.shuffleForwardHistory
+            }
+          : null
       }))
     } catch (error) {
       console.warn('[KMusic] 无法保存播放器状态。', error)
@@ -422,6 +612,7 @@
     state.savedPosition = Math.max(0, Number(saved.currentTime) || 0)
     audio.volume = state.volume
     audio.muted = state.muted
+    if (state.mode === 'shuffle') restoreSmartShuffle(saved.shuffleState)
   }
 
   function loadCurrent(options = {}) {
@@ -447,6 +638,8 @@
       persist(true)
       return
     }
+
+    noteShufflePlayed(track.id)
 
     const targetSrc = assetUrl(track.file)
     if (audio.src !== new URL(targetSrc, window.location.href).href) {
@@ -484,6 +677,7 @@
   function playQueueIndex(index) {
     const nextIndex = Number(index)
     if (!Number.isInteger(nextIndex) || nextIndex < 0 || nextIndex >= state.queue.length) return false
+    rememberShuffleTransition(state.queue[nextIndex])
     state.currentIndex = nextIndex
     loadCurrent({ autoplay: true })
     return true
@@ -500,6 +694,7 @@
         state.queue.push(id)
         index = state.queue.length - 1
       }
+      rememberShuffleTransition(id)
       state.currentIndex = index
     }
     updateQueueUi()
@@ -514,17 +709,15 @@
       audio.currentTime = 0
       return safePlay()
     }
+    if (state.mode === 'shuffle') return playSmartShufflePrevious()
     state.currentIndex = state.currentIndex > 0 ? state.currentIndex - 1 : state.queue.length - 1
     loadCurrent({ autoplay: true })
   }
 
   function next() {
     if (!state.queue.length) return
-    if (state.mode === 'shuffle' && state.queue.length > 1) {
-      state.currentIndex = randomIndexExcept(state.currentIndex)
-    } else {
-      state.currentIndex = (state.currentIndex + 1) % state.queue.length
-    }
+    if (state.mode === 'shuffle') return playSmartShuffleNext()
+    state.currentIndex = (state.currentIndex + 1) % state.queue.length
     loadCurrent({ autoplay: true })
   }
 
@@ -535,18 +728,10 @@
       return safePlay()
     }
     if (state.mode === 'shuffle') {
-      state.currentIndex = state.queue.length > 1 ? randomIndexExcept(state.currentIndex) : 0
-      return loadCurrent({ autoplay: true })
+      return playSmartShuffleNext()
     }
     state.currentIndex = (state.currentIndex + 1) % state.queue.length
     loadCurrent({ autoplay: true })
-  }
-
-  function randomIndexExcept(excluded) {
-    if (state.queue.length <= 1) return 0
-    let index = excluded
-    while (index === excluded) index = Math.floor(Math.random() * state.queue.length)
-    return index
   }
 
   function setQueue(ids, options = {}) {
@@ -556,6 +741,7 @@
     state.currentIndex = queue.length
       ? Number.isInteger(requestedIndex) && requestedIndex >= 0 && requestedIndex < queue.length ? requestedIndex : 0
       : 0
+    if (state.mode === 'shuffle') resetSmartShuffle()
     updateQueueUi()
     emit('queuechange')
     loadCurrent({ autoplay: Boolean(options.autoplay) })
@@ -626,6 +812,7 @@
     state.queue = []
     state.currentIndex = 0
     state.queueOpen = false
+    clearSmartShuffle()
     loadCurrent({ autoplay: false })
     updateCollapsedUi()
     updateQueueUi()
@@ -634,10 +821,19 @@
 
   function cycleMode() {
     const index = MODES.indexOf(state.mode)
-    state.mode = MODES[(index + 1) % MODES.length]
+    setPlaybackMode(MODES[(index + 1) % MODES.length])
+  }
+
+  function setPlaybackMode(mode) {
+    if (!MODES.includes(mode)) return false
+    const previousMode = state.mode
+    state.mode = mode
+    if (mode === 'shuffle' && previousMode !== 'shuffle') resetSmartShuffle()
+    if (mode !== 'shuffle' && previousMode === 'shuffle') clearSmartShuffle()
     updateModeUi()
     persist(true)
     emit('modechange')
+    return true
   }
 
   function toggleMute() {
@@ -866,14 +1062,7 @@
       next,
       previous,
       toggleQueuePanel,
-      setMode: mode => {
-        if (!MODES.includes(mode)) return false
-        state.mode = mode
-        updateModeUi()
-        persist(true)
-        emit('modechange')
-        return true
-      }
+      setMode: setPlaybackMode
     })
   }
 

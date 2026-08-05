@@ -1,9 +1,9 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>音乐馆 | Kamonto's Little Planet</title><meta name="author" content="Kamonto"><meta name="copyright" content="Kamonto"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="referrer" content="no-referrer"><meta name="description" content="Kamonto Music Library 音乐馆 浏览本地音乐、组合搜索歌曲信息，并把喜欢的歌曲加入网站底部的全局播放队列。队列与播放设置会保存在当前浏览器中。  正在读取音乐库… 支持歌名 &#x2F; 歌手 &#x2F; 作者 &#x2F; 标签等字段 支持自定义队列与多种播放模式       搜索音乐 不同输入框之间使用“并且”关系；留空的字段不会参与筛选。      全字段关键词    歌曲名    歌手名">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>音乐馆 | Kamonto's Little Planet</title><meta name="author" content="Kamonto"><meta name="copyright" content="Kamonto"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="referrer" content="no-referrer"><meta name="description" content="Kamonto Music Library 音乐馆 浏览本地音乐、组合搜索歌曲信息，并把喜欢的歌曲加入网站底部的全局播放队列。队列与播放设置会保存在当前浏览器中。  正在读取音乐库… 支持严格、标签与别名搜索 支持自定义队列与多种播放模式       搜索音乐 始终搜索歌名、译名、歌手和作者；可按需扩展标签或别名范围。      搜索关键词        搜索范围   严格搜索歌名、译名">
 <meta property="og:type" content="website">
 <meta property="og:title" content="音乐馆">
 <meta property="og:url" content="https://kamonto.github.io/Kamonto_blog/music/index.html">
 <meta property="og:site_name" content="Kamonto&#39;s Little Planet">
-<meta property="og:description" content="Kamonto Music Library 音乐馆 浏览本地音乐、组合搜索歌曲信息，并把喜欢的歌曲加入网站底部的全局播放队列。队列与播放设置会保存在当前浏览器中。  正在读取音乐库… 支持歌名 &#x2F; 歌手 &#x2F; 作者 &#x2F; 标签等字段 支持自定义队列与多种播放模式       搜索音乐 不同输入框之间使用“并且”关系；留空的字段不会参与筛选。      全字段关键词    歌曲名    歌手名">
+<meta property="og:description" content="Kamonto Music Library 音乐馆 浏览本地音乐、组合搜索歌曲信息，并把喜欢的歌曲加入网站底部的全局播放队列。队列与播放设置会保存在当前浏览器中。  正在读取音乐库… 支持严格、标签与别名搜索 支持自定义队列与多种播放模式       搜索音乐 始终搜索歌名、译名、歌手和作者；可按需扩展标签或别名范围。      搜索关键词        搜索范围   严格搜索歌名、译名">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/Kamonto/Kamonto_blog@gh-pages/img/profile_picture.png">
 <meta property="article:published_time" content="2025-03-25T14:56:37.000Z">
@@ -152,7 +152,7 @@
 <p>浏览本地音乐、组合搜索歌曲信息，并把喜欢的歌曲加入网站底部的全局播放队列。队列与播放设置会保存在当前浏览器中。</p>
 <div class="kmusic-library__stats">
 <span class="kmusic-library__stat" id="kmusic-library-total">正在读取音乐库…</span>
-<span class="kmusic-library__stat">支持歌名 / 歌手 / 作者 / 标签等字段</span>
+<span class="kmusic-library__stat">支持严格、标签与别名搜索</span>
 <span class="kmusic-library__stat">支持自定义队列与多种播放模式</span>
 </div>
 </section>
@@ -161,31 +161,34 @@
 <div class="kmusic-library__panel-head">
 <div>
 <h2 id="kmusic-search-title">搜索音乐</h2>
-<p>不同输入框之间使用“并且”关系；留空的字段不会参与筛选。</p>
+<p>始终搜索歌名、译名、歌手和作者；可按需扩展标签或别名范围。</p>
 </div>
 </div>
 
-<div class="kmusic-library__search-grid">
-<div class="kmusic-library__field kmusic-library__field--wide">
-<label for="kmusic-search-all">全字段关键词</label>
-<input id="kmusic-search-all" class="kmusic-library__input" type="search" placeholder="搜索歌名、别名、歌手、作者、专辑、标签或新增的元数据字段">
-</div>
+<div class="kmusic-library__search-layout">
 <div class="kmusic-library__field">
-<label for="kmusic-search-title-input">歌曲名</label>
-<input id="kmusic-search-title-input" class="kmusic-library__input" type="search" placeholder="例如：花結び">
+<label for="kmusic-search-all">搜索关键词</label>
+<div class="kmusic-library__autocomplete">
+<input id="kmusic-search-all" class="kmusic-library__input" type="search" placeholder="输入歌名、译名、歌手或作者" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="kmusic-search-suggestions" aria-expanded="false">
+<div id="kmusic-search-suggestions" class="kmusic-library__suggestions" role="listbox" hidden></div>
 </div>
-<div class="kmusic-library__field">
-<label for="kmusic-search-singer">歌手名</label>
-<input id="kmusic-search-singer" class="kmusic-library__input" type="search" placeholder="例如：MEIKO">
 </div>
-<div class="kmusic-library__field">
-<label for="kmusic-search-author">作者</label>
-<input id="kmusic-search-author" class="kmusic-library__input" type="search" placeholder="例如：Guiano">
-</div>
-<div class="kmusic-library__field">
-<label for="kmusic-search-other">专辑、标签及其他信息</label>
-<input id="kmusic-search-other" class="kmusic-library__input" type="search" placeholder="例如：VOCALOID">
-</div>
+
+<fieldset class="kmusic-library__search-scopes">
+<legend>搜索范围</legend>
+<label class="kmusic-library__scope is-required" title="严格搜索始终启用">
+<input type="checkbox" checked disabled>
+<span><strong>严格搜索</strong><small>歌名、译名、歌手、作者</small></span>
+</label>
+<label class="kmusic-library__scope">
+<input id="kmusic-search-tags" type="checkbox">
+<span><strong>标签搜索</strong><small>同时搜索 tags</small></span>
+</label>
+<label class="kmusic-library__scope">
+<input id="kmusic-search-aliases" type="checkbox">
+<span><strong>别名搜索</strong><small>同时搜索歌曲、歌手和作者别名</small></span>
+</label>
+</fieldset>
 </div>
 
 <div class="kmusic-library__toolbar">

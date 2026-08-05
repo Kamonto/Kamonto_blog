@@ -67,11 +67,16 @@
     return `${encodedPath}${suffix}`
   }
 
-  function text(value) {
-    if (Array.isArray(value)) return value.filter(Boolean).join('、')
-    if (value === null || value === undefined) return ''
-    if (typeof value === 'object') return Object.values(value).map(text).filter(Boolean).join(' ')
-    return String(value)
+  function formatPeople(value) {
+    const names = (Array.isArray(value) ? value : [value]).filter(Boolean).map(String)
+    const fullwidthPunctuationAtEnd = /[\u3000-\u303f\uff01-\uff0f\uff1a-\uff20\uff3b-\uff40\uff5b-\uff65]$/u
+    const fullwidthPunctuationAtStart = /^[\u3000-\u303f\uff01-\uff0f\uff1a-\uff20\uff3b-\uff40\uff5b-\uff65]/u
+    return names.reduce((result, name) => {
+      if (!result) return name
+      const leftSpace = fullwidthPunctuationAtEnd.test(result) ? '' : ' '
+      const rightSpace = fullwidthPunctuationAtStart.test(name) ? '' : ' '
+      return `${result}${leftSpace}×${rightSpace}${name}`
+    }, '')
   }
 
   function escapeHtml(value) {
@@ -677,7 +682,7 @@
     el.cover.alt = `${track.title} 封面`
     el.title.textContent = track.title
     el.title.title = track.title
-    el.artist.textContent = text(track.singers || track.artists) || '未知歌手'
+    el.artist.textContent = formatPeople(track.singers || track.artists) || '未知歌手'
     el.artist.title = el.artist.textContent
     document.title = document.title.replace(/^▶\s*/, '')
   }
@@ -821,7 +826,7 @@
           <span class="kmusic-player__queue-index">${index + 1}</span>
           <button type="button" class="kmusic-player__queue-main" title="播放 ${escapeHtml(track.title)}">
             <span class="kmusic-player__queue-name">${escapeHtml(track.title)}</span>
-            <span class="kmusic-player__queue-artist">${escapeHtml(text(track.singers || track.artists) || '未知歌手')}</span>
+            <span class="kmusic-player__queue-artist">${escapeHtml(formatPeople(track.singers || track.artists) || '未知歌手')}</span>
           </button>
           <span class="kmusic-player__queue-tools">
             <button type="button" class="kmusic-player__queue-tool" data-queue-tool="up" title="上移" ${index === 0 ? 'disabled' : ''}><i class="fas fa-arrow-up"></i></button>

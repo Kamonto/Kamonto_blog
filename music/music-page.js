@@ -18,6 +18,10 @@
     selected: new Set(),
     suggestions: [],
     activeSuggestion: -1,
+    trackPage: 1,
+    trackPageSize: 12,
+    queuePage: 1,
+    queuePageSize: 10,
     player: null,
     toastTimer: 0
   }
@@ -53,10 +57,22 @@
   }
 
   function text(value) {
-    if (Array.isArray(value)) return value.filter(Boolean).join('、')
+    if (Array.isArray(value)) return value.filter(Boolean).join(' ')
     if (value === null || value === undefined) return ''
     if (typeof value === 'object') return Object.values(value).map(text).filter(Boolean).join(' ')
     return String(value)
+  }
+
+  function formatPeople(value) {
+    const names = (Array.isArray(value) ? value : [value]).filter(Boolean).map(String)
+    const fullwidthPunctuationAtEnd = /[\u3000-\u303f\uff01-\uff0f\uff1a-\uff20\uff3b-\uff40\uff5b-\uff65]$/u
+    const fullwidthPunctuationAtStart = /^[\u3000-\u303f\uff01-\uff0f\uff1a-\uff20\uff3b-\uff40\uff5b-\uff65]/u
+    return names.reduce((result, name) => {
+      if (!result) return name
+      const leftSpace = fullwidthPunctuationAtEnd.test(result) ? '' : ' '
+      const rightSpace = fullwidthPunctuationAtStart.test(name) ? '' : ' '
+      return `${result}${leftSpace}×${rightSpace}${name}`
+    }, '')
   }
 
   function normalize(value) {
@@ -108,6 +124,19 @@
       .replace(/'/g, '&#039;')
   }
 
+  function paginationElements(kind) {
+    return {
+      container: document.getElementById(`kmusic-${kind}-pagination`),
+      summary: document.getElementById(`kmusic-${kind}-page-summary`),
+      pageSize: document.getElementById(`kmusic-${kind}-page-size`),
+      previous: document.getElementById(`kmusic-${kind}-page-prev`),
+      status: document.getElementById(`kmusic-${kind}-page-status`),
+      next: document.getElementById(`kmusic-${kind}-page-next`),
+      input: document.getElementById(`kmusic-${kind}-page-input`),
+      go: document.getElementById(`kmusic-${kind}-page-go`)
+    }
+  }
+
   function cacheElements() {
     elements.total = document.getElementById('kmusic-library-total')
     elements.all = document.getElementById('kmusic-search-all')
@@ -125,6 +154,8 @@
     elements.clearQueue = document.getElementById('kmusic-clear-queue')
     elements.queue = document.getElementById('kmusic-page-queue')
     elements.toast = document.getElementById('kmusic-page-toast')
+    elements.trackPagination = paginationElements('track')
+    elements.queuePagination = paginationElements('queue')
   }
 
   async function loadLibrary() {
@@ -195,6 +226,7 @@
 
   function applyFilters() {
     const query = normalize(elements.all.value)
+    state.trackPage = 1
 
     state.filtered = state.tracks.filter(track => {
       const singerNames = track.singers || track.artists
@@ -317,6 +349,69 @@
     renderSuggestionList()
   }
 
+  function bindPaginationControls(controls, pageKey, pageSizeKey, render) {
+    controls.pageSize.addEventListener('change', () => {
+      state[pageSizeKey] = Math.max(1, Number(controls.pageSize.value) || state[pageSizeKey])
+      state[pageKey] = 1
+      render()
+    })
+
+    controls.previous.addEventListener('click', () => {
+      state[pageKey] -= 1
+      render()
+    })
+
+    controls.next.addEventListener('click', () => {
+      state[pageKey] += 1
+      render()
+    })
+
+    const jump = () => {
+      const requestedPage = Math.trunc(Number(controls.input.value))
+      if (!Number.isFinite(requestedPage)) return
+      state[pageKey] = requestedPage
+      render()
+      controls.input.select()
+    }
+
+    controls.go.addEventListener('click', jump)
+    controls.input.addEventListener('keydown', event => {
+      if (event.key !== 'Enter') return
+      event.preventDefault()
+      jump()
+    })
+  }
+
+  function bindPagination() {
+    bindPaginationControls(elements.trackPagination, 'trackPage', 'trackPageSize', renderTracks)
+    bindPaginationControls(elements.queuePagination, 'queuePage', 'queuePageSize', renderQueue)
+  }
+
+  function paginate(controls, totalItems, pageKey, pageSizeKey) {
+    if (totalItems <= 0) {
+      controls.container.hidden = true
+      state[pageKey] = 1
+      return { start: 0, end: 0, page: 1, totalPages: 1 }
+    }
+
+    const pageSize = Math.max(1, Number(state[pageSizeKey]) || 1)
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+    const page = Math.min(totalPages, Math.max(1, Math.trunc(Number(state[pageKey])) || 1))
+    const start = (page - 1) * pageSize
+    const end = Math.min(totalItems, start + pageSize)
+    state[pageKey] = page
+
+    controls.container.hidden = false
+    controls.summary.textContent = `第 ${start + 1}–${end} 首，共 ${totalItems} 首`
+    controls.status.textContent = `${page} / ${totalPages} 页`
+    controls.previous.disabled = page <= 1
+    controls.next.disabled = page >= totalPages
+    controls.input.max = String(totalPages)
+    controls.input.value = String(page)
+
+    return { start, end, page, totalPages }
+  }
+
   function renderTracks() {
     elements.resultCount.textContent = `${state.filtered.length} 首结果 · 已选择 ${state.selected.size} 首`
     const hasSelection = state.selected.size > 0
@@ -324,16 +419,17 @@
     elements.addSelected.disabled = !hasSelection
     elements.replaceQueue.disabled = !hasSelection
 
+    const page = paginate(elements.trackPagination, state.filtered.length, 'trackPage', 'trackPageSize')
     if (!state.filtered.length) {
       elements.grid.innerHTML = '<div class="kmusic-library__empty"><i class="fas fa-search"></i><br>没有找到符合所有条件的歌曲。</div>'
       return
     }
 
-    elements.grid.innerHTML = state.filtered.map(track => {
+    elements.grid.innerHTML = state.filtered.slice(page.start, page.end).map(track => {
       const selected = state.selected.has(track.id)
       const translatedTitle = text(track.translatedTitle)
-      const singers = text(track.singers || track.artists) || '未知歌手'
-      const authors = text(track.authors || track.composers || track.author) || '未知作者'
+      const singers = formatPeople(track.singers || track.artists) || '未知歌手'
+      const authors = formatPeople(track.authors || track.composers || track.author) || '未知作者'
       const tags = Array.isArray(track.tags) ? track.tags : []
       return `
         <article class="kmusic-library__track-card${selected ? ' is-selected' : ''}" data-track-id="${escapeHtml(track.id)}">
@@ -430,28 +526,34 @@
   function connectPlayer() {
     const player = getPlayer()
     if (!player) return false
-    renderQueue()
+    renderQueue({ followCurrent: true })
     return true
   }
 
-  function renderQueue() {
+  function renderQueue(options = {}) {
     const player = getPlayer()
     if (!player) {
       elements.queue.innerHTML = '<li class="kmusic-library__loading">播放器正在初始化…</li>'
+      elements.queuePagination.container.hidden = true
       return
     }
 
     const snapshot = player.getState()
     const queue = snapshot.queue || []
+    if (options.followCurrent && queue.length) {
+      state.queuePage = Math.floor(snapshot.currentIndex / state.queuePageSize) + 1
+    }
+    const page = paginate(elements.queuePagination, queue.length, 'queuePage', 'queuePageSize')
     if (!queue.length) {
       elements.queue.innerHTML = '<li class="kmusic-library__empty">当前队列为空。请从上方选择歌曲加入队列。</li>'
       return
     }
 
-    elements.queue.innerHTML = queue.map((id, index) => {
+    elements.queue.innerHTML = queue.slice(page.start, page.end).map((id, offset) => {
+      const index = page.start + offset
       const track = state.trackMap.get(id) || player.getTrack(id)
       if (!track) return ''
-      const singers = text(track.singers || track.artists) || '未知歌手'
+      const singers = formatPeople(track.singers || track.artists) || '未知歌手'
       return `
         <li class="kmusic-library__queue-item${index === snapshot.currentIndex ? ' is-current' : ''}" data-queue-index="${index}">
           <span class="kmusic-library__queue-index">${index + 1}</span>
@@ -496,8 +598,8 @@
     })
 
     window.addEventListener('kmusic:ready', () => connectPlayer(), { signal })
-    window.addEventListener('kmusic:queuechange', renderQueue, { signal })
-    window.addEventListener('kmusic:trackchange', renderQueue, { signal })
+    window.addEventListener('kmusic:queuechange', () => renderQueue(), { signal })
+    window.addEventListener('kmusic:trackchange', () => renderQueue({ followCurrent: true }), { signal })
   }
 
   function showToast(message) {
@@ -527,6 +629,7 @@
     bindTrackGrid()
     bindBulkActions()
     bindQueue()
+    bindPagination()
 
     try {
       await loadLibrary()

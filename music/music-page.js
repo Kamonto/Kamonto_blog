@@ -9,6 +9,7 @@
   const signal = lifecycle.signal
   const root = normalizeRoot(window.GLOBAL_CONFIG && window.GLOBAL_CONFIG.root)
   const DEFAULT_COVERS = ['/Kamonto_blog/cover/default1.png', '/Kamonto_blog/cover/default2.png']
+  const SEARCH_KEYS = ['all', 'title', 'singer', 'author', 'tag']
   const elements = {}
   const state = {
     tracks: [],
@@ -19,6 +20,7 @@
     selected: new Set(),
     suggestions: [],
     activeSuggestion: -1,
+    activeSearchKey: 'all',
     trackPage: 1,
     trackPageSize: 6,
     queuePage: 1,
@@ -104,13 +106,17 @@
       if (!Array.isArray(record.aliases)) {
         throw new Error(`${tableName} 中 ${record.name} 的 aliases 必须是数组。`)
       }
+      if (!Array.isArray(record.links)) {
+        throw new Error(`${tableName} 中 ${record.name} 的 links 必须是数组。`)
+      }
       const aliases = record.aliases.filter(Boolean)
-      if (!aliases.length) {
-        throw new Error(`${tableName} 中 ${record.name} 没有有效别名，请删除该条记录。`)
+      const links = [...new Set(record.links.filter(link => typeof link === 'string' && link.trim()).map(link => link.trim()))]
+      if (!aliases.length && !links.length) {
+        throw new Error(`${tableName} 中 ${record.name} 没有有效别名或关联名称，请删除该条记录。`)
       }
       const key = normalize(record.name)
       if (map.has(key)) throw new Error(`${tableName} 中重复定义了 ${record.name}。`)
-      map.set(key, { name: record.name, aliases })
+      map.set(key, { name: record.name, aliases, links })
     })
     return map
   }
@@ -121,6 +127,22 @@
       .filter(Boolean)
       // 标准名称未出现在别名表中时按“没有别名”处理，不影响标准名称搜索。
       .flatMap(name => aliasMap.get(normalize(name))?.aliases || [])
+  }
+
+  function directlyLinkedNames(query, aliasMap) {
+    const linkedNames = new Set()
+    if (!query) return linkedNames
+    aliasMap.forEach(entry => {
+      // 只用用户的原始查询匹配当前记录，不使用 links 的结果继续查表。
+      if (!normalize([entry.name, ...entry.aliases]).includes(query)) return
+      entry.links.forEach(name => linkedNames.add(normalize(name)))
+    })
+    return linkedNames
+  }
+
+  function containsLinkedName(names, linkedNames) {
+    const canonicalNames = Array.isArray(names) ? names : [names]
+    return canonicalNames.filter(Boolean).some(name => linkedNames.has(normalize(name)))
   }
 
   function formatDuration(seconds) {
@@ -154,10 +176,11 @@
 
   function cacheElements() {
     elements.total = document.getElementById('kmusic-library-total')
-    elements.all = document.getElementById('kmusic-search-all')
+    elements.searchInputs = Object.fromEntries(SEARCH_KEYS.map(key => [key, document.querySelector(`[data-search-key="${key}"]`)]))
+    elements.suggestionLists = Object.fromEntries(SEARCH_KEYS.map(key => [key, document.querySelector(`[data-suggestions-key="${key}"]`)]))
+    elements.tagField = document.getElementById('kmusic-search-tag-field')
     elements.tagSearch = document.getElementById('kmusic-search-tags')
     elements.aliasSearch = document.getElementById('kmusic-search-aliases')
-    elements.suggestions = document.getElementById('kmusic-search-suggestions')
     elements.resetSearch = document.getElementById('kmusic-reset-search')
     elements.selectResults = document.getElementById('kmusic-select-results')
     elements.clearSelection = document.getElementById('kmusic-clear-selection')
@@ -194,25 +217,34 @@
   }
 
   function bindSearch() {
-    elements.all.addEventListener('input', () => {
-      applyFilters()
-      renderSuggestions()
-    })
-    elements.all.addEventListener('focus', renderSuggestions)
-    elements.all.addEventListener('keydown', handleSuggestionKeydown)
-
-    ;[elements.tagSearch, elements.aliasSearch].forEach(option => {
-      option.addEventListener('change', () => {
+    SEARCH_KEYS.forEach(key => {
+      const input = elements.searchInputs[key]
+      const suggestions = elements.suggestionLists[key]
+      input.addEventListener('input', () => {
+        state.activeSearchKey = key
         applyFilters()
-        renderSuggestions()
+        renderSuggestions(key)
+      })
+      input.addEventListener('focus', () => renderSuggestions(key))
+      input.addEventListener('keydown', event => handleSuggestionKeydown(event, key))
+
+      suggestions.addEventListener('mousedown', event => {
+        const item = event.target.closest('[data-suggestion-index]')
+        if (!item) return
+        event.preventDefault()
+        selectSuggestion(Number(item.dataset.suggestionIndex), key)
       })
     })
 
-    elements.suggestions.addEventListener('mousedown', event => {
-      const item = event.target.closest('[data-suggestion-index]')
-      if (!item) return
-      event.preventDefault()
-      selectSuggestion(Number(item.dataset.suggestionIndex))
+    elements.tagSearch.addEventListener('change', () => {
+      syncTagSearchState()
+      applyFilters()
+      renderSuggestions(state.activeSearchKey)
+    })
+
+    elements.aliasSearch.addEventListener('change', () => {
+      applyFilters()
+      renderSuggestions(state.activeSearchKey)
     })
 
     document.addEventListener('click', event => {
@@ -220,12 +252,13 @@
     }, { signal })
 
     elements.resetSearch.addEventListener('click', () => {
-      elements.all.value = ''
+      SEARCH_KEYS.forEach(key => { elements.searchInputs[key].value = '' })
       elements.tagSearch.checked = false
       elements.aliasSearch.checked = false
+      syncTagSearchState()
       hideSuggestions()
       applyFilters()
-      elements.all.focus()
+      elements.searchInputs.all.focus()
     })
 
     elements.selectResults.addEventListener('click', () => {
@@ -237,30 +270,91 @@
       state.selected.clear()
       renderTracks()
     })
+
+    syncTagSearchState()
+  }
+
+  function syncTagSearchState() {
+    const enabled = elements.tagSearch.checked
+    const input = elements.searchInputs.tag
+    input.disabled = !enabled
+    input.setAttribute('aria-disabled', String(!enabled))
+    input.placeholder = enabled ? '仅搜索标签' : '请先勾选“标签搜索”'
+    elements.tagField.classList.toggle('is-disabled', !enabled)
+    if (!enabled) {
+      input.value = ''
+      if (state.activeSearchKey === 'tag') hideSuggestions()
+    }
+  }
+
+  function searchQueries() {
+    return {
+      all: normalize(elements.searchInputs.all.value),
+      title: normalize(elements.searchInputs.title.value),
+      singer: normalize(elements.searchInputs.singer.value),
+      author: normalize(elements.searchInputs.author.value),
+      tag: elements.tagSearch.checked ? normalize(elements.searchInputs.tag.value) : ''
+    }
   }
 
   function applyFilters() {
-    const query = normalize(elements.all.value)
+    const queries = searchQueries()
+    const aliasSearchEnabled = elements.aliasSearch.checked
     state.trackPage = 1
+    const linkedNames = {
+      globalSingers: aliasSearchEnabled ? directlyLinkedNames(queries.all, state.singerAliasMap) : new Set(),
+      globalAuthors: aliasSearchEnabled ? directlyLinkedNames(queries.all, state.authorAliasMap) : new Set(),
+      singers: aliasSearchEnabled ? directlyLinkedNames(queries.singer, state.singerAliasMap) : new Set(),
+      authors: aliasSearchEnabled ? directlyLinkedNames(queries.author, state.authorAliasMap) : new Set()
+    }
 
     state.filtered = state.tracks.filter(track => {
       const singerNames = track.singers || track.artists
       const authorNames = track.authors || track.composers || track.author
       const singerAliases = aliasesFor(singerNames, state.singerAliasMap)
       const authorAliases = aliasesFor(authorNames, state.authorAliasMap)
-      const strictText = normalize([track.title, track.translatedTitle, singerNames, authorNames])
-      const tagText = elements.tagSearch.checked ? normalize(track.tags) : ''
-      const aliasText = elements.aliasSearch.checked
-        ? normalize([track.aliases, singerAliases, authorAliases])
-        : ''
+      const titleText = normalize([track.title, track.translatedTitle])
+      const singerText = normalize(singerNames)
+      const authorText = normalize(authorNames)
+      const tagText = normalize(track.tags)
+      const titleAliasText = aliasSearchEnabled ? normalize(track.aliases) : ''
+      const singerAliasText = aliasSearchEnabled ? normalize(singerAliases) : ''
+      const authorAliasText = aliasSearchEnabled ? normalize(authorAliases) : ''
+      const strictGlobalText = normalize([track.title, track.translatedTitle, singerNames, authorNames])
+      const aliasGlobalText = aliasSearchEnabled ? normalize([track.aliases, singerAliases, authorAliases]) : ''
 
-      return !query || strictText.includes(query) || tagText.includes(query) || aliasText.includes(query)
+      const globalMatch = !queries.all ||
+        strictGlobalText.includes(queries.all) ||
+        (elements.tagSearch.checked && tagText.includes(queries.all)) ||
+        (aliasSearchEnabled && (
+          aliasGlobalText.includes(queries.all) ||
+          containsLinkedName(singerNames, linkedNames.globalSingers) ||
+          containsLinkedName(authorNames, linkedNames.globalAuthors)
+        ))
+      const titleMatch = !queries.title ||
+        titleText.includes(queries.title) ||
+        (aliasSearchEnabled && titleAliasText.includes(queries.title))
+      const singerMatch = !queries.singer ||
+        singerText.includes(queries.singer) ||
+        (aliasSearchEnabled && (
+          singerAliasText.includes(queries.singer) ||
+          containsLinkedName(singerNames, linkedNames.singers)
+        ))
+      const authorMatch = !queries.author ||
+        authorText.includes(queries.author) ||
+        (aliasSearchEnabled && (
+          authorAliasText.includes(queries.author) ||
+          containsLinkedName(authorNames, linkedNames.authors)
+        ))
+      const tagMatch = !queries.tag || tagText.includes(queries.tag)
+
+      return globalMatch && titleMatch && singerMatch && authorMatch && tagMatch
     })
 
     renderTracks()
   }
 
-  function collectSuggestions(query) {
+  function collectSuggestions(query, searchKey) {
     const suggestions = []
     const seen = new Set()
     const add = (value, type, searchableValue = value) => {
@@ -275,88 +369,119 @@
     state.tracks.forEach(track => {
       const singerNames = track.singers || track.artists
       const authorNames = track.authors || track.composers || track.author
-      add(track.title, '歌名')
-      add(track.translatedTitle, '译名')
-      ;(Array.isArray(singerNames) ? singerNames : [singerNames]).filter(Boolean).forEach(name => add(name, '歌手'))
-      ;(Array.isArray(authorNames) ? authorNames : [authorNames]).filter(Boolean).forEach(name => add(name, '作者'))
+      if (searchKey === 'all' || searchKey === 'title') {
+        add(track.title, '歌名')
+        add(track.translatedTitle, '译名')
+      }
+      if (searchKey === 'all' || searchKey === 'singer') {
+        ;(Array.isArray(singerNames) ? singerNames : [singerNames]).filter(Boolean).forEach(name => add(name, '歌手'))
+      }
+      if (searchKey === 'all' || searchKey === 'author') {
+        ;(Array.isArray(authorNames) ? authorNames : [authorNames]).filter(Boolean).forEach(name => add(name, '作者'))
+      }
 
-      if (elements.tagSearch.checked) {
+      if (elements.tagSearch.checked && (searchKey === 'all' || searchKey === 'tag')) {
         ;(Array.isArray(track.tags) ? track.tags : [track.tags]).filter(Boolean).forEach(tag => add(tag, '标签'))
       }
 
-      if (elements.aliasSearch.checked) {
+      if (elements.aliasSearch.checked && (searchKey === 'all' || searchKey === 'title')) {
         ;(Array.isArray(track.aliases) ? track.aliases : [track.aliases]).filter(Boolean)
           .forEach(alias => add(track.title, '歌名', alias))
       }
     })
 
-    if (elements.aliasSearch.checked) {
+    if (elements.aliasSearch.checked && (searchKey === 'all' || searchKey === 'singer')) {
       state.singerAliasMap.forEach(entry => {
         entry.aliases.forEach(alias => add(entry.name, '歌手', alias))
+        if (normalize([entry.name, ...entry.aliases]).includes(query)) {
+          entry.links.forEach(name => add(name, '关联歌手', query))
+        }
       })
+    }
+    if (elements.aliasSearch.checked && (searchKey === 'all' || searchKey === 'author')) {
       state.authorAliasMap.forEach(entry => {
         entry.aliases.forEach(alias => add(entry.name, '作者', alias))
+        if (normalize([entry.name, ...entry.aliases]).includes(query)) {
+          entry.links.forEach(name => add(name, '关联作者', query))
+        }
       })
     }
 
     return suggestions.slice(0, 8)
   }
 
-  function renderSuggestions() {
-    const query = normalize(elements.all.value)
+  function renderSuggestions(searchKey = state.activeSearchKey) {
+    const input = elements.searchInputs[searchKey]
+    if (!input || input.disabled) return hideSuggestions()
+    const query = normalize(input.value)
     if (!query) return hideSuggestions()
-    state.suggestions = collectSuggestions(query)
+    state.activeSearchKey = searchKey
+    state.suggestions = collectSuggestions(query, searchKey)
     state.activeSuggestion = -1
     renderSuggestionList()
   }
 
   function renderSuggestionList() {
     if (!state.suggestions.length) return hideSuggestions()
-    elements.suggestions.innerHTML = state.suggestions.map((suggestion, index) => `
+    const searchKey = state.activeSearchKey
+    const input = elements.searchInputs[searchKey]
+    const suggestionList = elements.suggestionLists[searchKey]
+    SEARCH_KEYS.forEach(key => {
+      if (key === searchKey) return
+      elements.suggestionLists[key].hidden = true
+      elements.suggestionLists[key].innerHTML = ''
+      elements.searchInputs[key].setAttribute('aria-expanded', 'false')
+      elements.searchInputs[key].removeAttribute('aria-activedescendant')
+    })
+    suggestionList.innerHTML = state.suggestions.map((suggestion, index) => `
       <button type="button" class="kmusic-library__suggestion${index === state.activeSuggestion ? ' is-active' : ''}"
-        id="kmusic-suggestion-${index}" role="option" aria-selected="${index === state.activeSuggestion}"
+        id="kmusic-suggestion-${searchKey}-${index}" role="option" aria-selected="${index === state.activeSuggestion}"
         data-suggestion-index="${index}">
         <span class="kmusic-library__suggestion-label">${escapeHtml(suggestion.label)}</span>
         <span class="kmusic-library__suggestion-type">${escapeHtml(suggestion.type)}</span>
       </button>`).join('')
-    elements.suggestions.hidden = false
-    elements.all.setAttribute('aria-expanded', 'true')
+    suggestionList.hidden = false
+    input.setAttribute('aria-expanded', 'true')
     if (state.activeSuggestion >= 0) {
-      elements.all.setAttribute('aria-activedescendant', `kmusic-suggestion-${state.activeSuggestion}`)
-      elements.suggestions.children[state.activeSuggestion]?.scrollIntoView({ block: 'nearest' })
+      input.setAttribute('aria-activedescendant', `kmusic-suggestion-${searchKey}-${state.activeSuggestion}`)
+      suggestionList.children[state.activeSuggestion]?.scrollIntoView({ block: 'nearest' })
     } else {
-      elements.all.removeAttribute('aria-activedescendant')
+      input.removeAttribute('aria-activedescendant')
     }
   }
 
   function hideSuggestions() {
     state.suggestions = []
     state.activeSuggestion = -1
-    elements.suggestions.hidden = true
-    elements.suggestions.innerHTML = ''
-    elements.all.setAttribute('aria-expanded', 'false')
-    elements.all.removeAttribute('aria-activedescendant')
+    SEARCH_KEYS.forEach(key => {
+      elements.suggestionLists[key].hidden = true
+      elements.suggestionLists[key].innerHTML = ''
+      elements.searchInputs[key].setAttribute('aria-expanded', 'false')
+      elements.searchInputs[key].removeAttribute('aria-activedescendant')
+    })
   }
 
-  function selectSuggestion(index) {
+  function selectSuggestion(index, searchKey = state.activeSearchKey) {
     const suggestion = state.suggestions[index]
     if (!suggestion) return
-    elements.all.value = suggestion.value
+    state.activeSearchKey = searchKey
+    elements.searchInputs[searchKey].value = suggestion.value
     hideSuggestions()
     applyFilters()
-    elements.all.focus()
+    elements.searchInputs[searchKey].focus()
   }
 
-  function handleSuggestionKeydown(event) {
+  function handleSuggestionKeydown(event, searchKey) {
+    state.activeSearchKey = searchKey
     if (event.key === 'Escape') return hideSuggestions()
     if (event.key === 'Enter' && state.activeSuggestion >= 0) {
       event.preventDefault()
-      return selectSuggestion(state.activeSuggestion)
+      return selectSuggestion(state.activeSuggestion, searchKey)
     }
     if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return
     event.preventDefault()
     if (!state.suggestions.length) {
-      renderSuggestions()
+      renderSuggestions(searchKey)
       if (!state.suggestions.length) return
     }
     const direction = event.key === 'ArrowDown' ? 1 : -1

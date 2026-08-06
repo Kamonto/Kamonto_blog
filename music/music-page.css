@@ -134,15 +134,26 @@
   gap: 14px;
 }
 
+.kmusic-library__search-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .kmusic-library__field {
   display: grid;
   gap: 6px;
+}
+
+.kmusic-library__field--global {
+  grid-column: 1 / -1;
 }
 
 .kmusic-library__field label {
   color: var(--library-muted);
   font-size: 12px;
   font-weight: 650;
+  transition: opacity 0.2s ease;
 }
 
 .kmusic-library__input {
@@ -160,6 +171,19 @@
 .kmusic-library__input:focus {
   border-color: var(--library-accent);
   box-shadow: 0 0 0 3px rgba(57, 197, 187, 0.16);
+}
+
+.kmusic-library__input:disabled {
+  border-color: rgba(117, 136, 145, 0.2);
+  color: var(--library-muted);
+  background: rgba(117, 136, 145, 0.08);
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.kmusic-library__field.is-disabled label {
+  opacity: 0.58;
 }
 
 .kmusic-library__autocomplete {
@@ -688,6 +712,14 @@
 }
 
 @media (max-width: 700px) {
+  .kmusic-library__search-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .kmusic-library__field--global {
+    grid-column: auto;
+  }
+
   .kmusic-library__scope {
     min-width: min(100%, 220px);
     flex: 1 1 180px;

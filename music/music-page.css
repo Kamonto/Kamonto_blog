@@ -249,9 +249,11 @@
 }
 
 .kmusic-library__scope.is-required {
-  border-color: rgba(57, 197, 187, 0.4);
-  background: rgba(57, 197, 187, 0.09);
   cursor: default;
+}
+
+.kmusic-library__scope.is-required input:disabled {
+  opacity: 1;
 }
 
 .kmusic-library__scope input {
@@ -354,7 +356,13 @@
   border: 1px solid var(--library-border);
   border-radius: 17px;
   background: var(--library-surface-solid);
+  cursor: pointer;
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kmusic-library__track-card:focus-visible {
+  outline: 3px solid rgba(57, 197, 187, 0.3);
+  outline-offset: 2px;
 }
 
 .kmusic-library__track-card:hover {
@@ -426,6 +434,7 @@
   gap: 6px;
   grid-column: 1 / -1;
   margin-top: -4px;
+  cursor: default;
 }
 
 .kmusic-library__track-actions .kmusic-library__button {

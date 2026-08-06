@@ -5,6 +5,7 @@
 
   const STORAGE_KEY = 'kmusic-player-state-v1'
   const MODES = ['list', 'one', 'shuffle']
+  const DEFAULT_COVERS = ['/Kamonto_blog/cover/default1.png', '/Kamonto_blog/cover/default2.png']
   const MODE_META = {
     list: { label: '列表循环', icon: 'fa-long-arrow-alt-right' },
     one: { label: '单曲循环', icon: 'fa-redo' },
@@ -70,6 +71,20 @@
       : `${root}${pathname.replace(/^\/+/, '')}`
     const encodedPath = localPath.split('/').map(encodePathSegment).join('/')
     return `${encodedPath}${suffix}`
+  }
+
+  function coverPath(track) {
+    const configuredCover = typeof track?.cover === 'string' ? track.cover.trim() : ''
+    if (configuredCover) return configuredCover
+
+    const key = String(track?.id || track?.file || track?.title || '')
+    const assignments = window.KMusicDefaultCoverAssignments instanceof Map
+      ? window.KMusicDefaultCoverAssignments
+      : (window.KMusicDefaultCoverAssignments = new Map())
+    if (!assignments.has(key)) {
+      assignments.set(key, DEFAULT_COVERS[Math.floor(Math.random() * DEFAULT_COVERS.length)])
+    }
+    return assignments.get(key)
   }
 
   function formatPeople(value) {
@@ -874,7 +889,7 @@
       return
     }
 
-    el.cover.src = assetUrl(track.cover)
+    el.cover.src = assetUrl(coverPath(track))
     el.cover.alt = `${track.title} 封面`
     el.title.textContent = track.title
     el.title.title = track.title

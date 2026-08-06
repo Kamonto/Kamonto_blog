@@ -213,15 +213,15 @@
 <button type="button" class="kmusic-library__button" id="kmusic-replace-queue"><i class="fas fa-list"></i> 用已选歌曲替换队列</button>
 </div>
 
-<div id="kmusic-track-grid" class="kmusic-library__track-grid">
+<div id="kmusic-track-grid" class="kmusic-library__track-grid" role="listbox" aria-multiselectable="true" aria-label="歌曲列表">
 <div class="kmusic-library__loading"><i class="fas fa-spinner fa-spin"></i> 正在读取音乐库…</div>
 </div>
 <nav id="kmusic-track-pagination" class="kmusic-library__pagination" aria-label="歌曲列表分页" hidden>
 <span id="kmusic-track-page-summary" class="kmusic-library__page-summary"></span>
 <label class="kmusic-library__page-size">每页
 <select id="kmusic-track-page-size" aria-label="歌曲列表每页数量">
-<option value="6">6</option>
-<option value="12" selected>12</option>
+<option value="6" selected>6</option>
+<option value="12">12</option>
 <option value="24">24</option>
 <option value="48">48</option>
 </select>
@@ -254,8 +254,8 @@
 <span id="kmusic-queue-page-summary" class="kmusic-library__page-summary"></span>
 <label class="kmusic-library__page-size">每页
 <select id="kmusic-queue-page-size" aria-label="播放队列每页数量">
-<option value="5">5</option>
-<option value="10" selected>10</option>
+<option value="5" selected>5</option>
+<option value="10">10</option>
 <option value="20">20</option>
 <option value="50">50</option>
 </select>

@@ -8,6 +8,7 @@
   const lifecycle = new AbortController()
   const signal = lifecycle.signal
   const root = normalizeRoot(window.GLOBAL_CONFIG && window.GLOBAL_CONFIG.root)
+  const DEFAULT_COVERS = ['/Kamonto_blog/cover/default1.png', '/Kamonto_blog/cover/default2.png']
   const elements = {}
   const state = {
     tracks: [],
@@ -19,9 +20,9 @@
     suggestions: [],
     activeSuggestion: -1,
     trackPage: 1,
-    trackPageSize: 12,
+    trackPageSize: 6,
     queuePage: 1,
-    queuePageSize: 10,
+    queuePageSize: 5,
     player: null,
     toastTimer: 0
   }
@@ -54,6 +55,20 @@
       : `${root}${pathname.replace(/^\/+/, '')}`
     const encodedPath = localPath.split('/').map(encodePathSegment).join('/')
     return `${encodedPath}${suffix}`
+  }
+
+  function coverPath(track) {
+    const configuredCover = typeof track?.cover === 'string' ? track.cover.trim() : ''
+    if (configuredCover) return configuredCover
+
+    const key = String(track?.id || track?.file || track?.title || '')
+    const assignments = window.KMusicDefaultCoverAssignments instanceof Map
+      ? window.KMusicDefaultCoverAssignments
+      : (window.KMusicDefaultCoverAssignments = new Map())
+    if (!assignments.has(key)) {
+      assignments.set(key, DEFAULT_COVERS[Math.floor(Math.random() * DEFAULT_COVERS.length)])
+    }
+    return assignments.get(key)
   }
 
   function text(value) {
@@ -432,9 +447,9 @@
       const authors = formatPeople(track.authors || track.composers || track.author) || '未知作者'
       const tags = Array.isArray(track.tags) ? track.tags : []
       return `
-        <article class="kmusic-library__track-card${selected ? ' is-selected' : ''}" data-track-id="${escapeHtml(track.id)}">
+        <article class="kmusic-library__track-card${selected ? ' is-selected' : ''}" data-track-id="${escapeHtml(track.id)}" tabindex="0" role="option" aria-selected="${selected}">
           <input class="kmusic-library__check" type="checkbox" aria-label="选择 ${escapeHtml(track.title)}" ${selected ? 'checked' : ''}>
-          <img class="kmusic-library__cover" src="${escapeHtml(assetUrl(track.cover))}" alt="${escapeHtml(track.title)} 封面" loading="lazy">
+          <img class="kmusic-library__cover" src="${escapeHtml(assetUrl(coverPath(track)))}" alt="${escapeHtml(track.title)} 封面" loading="lazy">
           <div class="kmusic-library__track-main">
             <h3 class="kmusic-library__track-title" title="${escapeHtml(track.title)}">${escapeHtml(track.title)}</h3>
             ${translatedTitle ? `<div class="kmusic-library__track-translation" title="译名：${escapeHtml(translatedTitle)}">${escapeHtml(translatedTitle)}</div>` : ''}
@@ -452,6 +467,13 @@
     }).join('')
   }
 
+  function toggleTrackSelection(card) {
+    const id = card?.dataset.trackId
+    if (!id) return
+    state.selected.has(id) ? state.selected.delete(id) : state.selected.add(id)
+    renderTracks()
+  }
+
   function bindTrackGrid() {
     elements.grid.addEventListener('change', event => {
       const checkbox = event.target.closest('.kmusic-library__check')
@@ -464,20 +486,35 @@
 
     elements.grid.addEventListener('click', event => {
       const button = event.target.closest('[data-action]')
-      if (!button) return
-      const card = button.closest('[data-track-id]')
-      if (!card) return
-      const id = card.dataset.trackId
-      const player = getPlayer()
-      if (!player) return showToast('播放器仍在初始化，请稍后再试。')
+      if (button) {
+        const card = button.closest('[data-track-id]')
+        if (!card) return
+        const id = card.dataset.trackId
+        const player = getPlayer()
+        if (!player) return showToast('播放器仍在初始化，请稍后再试。')
 
-      if (button.dataset.action === 'play') {
-        player.playTrack(id)
-        showToast(`开始播放：${state.trackMap.get(id)?.title || id}`)
-      } else if (button.dataset.action === 'add') {
-        player.addToQueue([id])
-        showToast('已加入播放队列。')
+        if (button.dataset.action === 'play') {
+          player.playTrack(id)
+          showToast(`开始播放：${state.trackMap.get(id)?.title || id}`)
+        } else if (button.dataset.action === 'add') {
+          player.addToQueue([id])
+          showToast('已加入播放队列。')
+        }
+        return
       }
+
+      const card = event.target.closest('[data-track-id]')
+      if (!card || event.target.closest('input, a, button, select, textarea, label, .kmusic-library__track-actions')) return
+      toggleTrackSelection(card)
+    })
+
+    elements.grid.addEventListener('keydown', event => {
+      if (!['Enter', ' '].includes(event.key)) return
+      if (event.target.closest('input, a, button, select, textarea, label, .kmusic-library__track-actions')) return
+      const card = event.target.closest('[data-track-id]')
+      if (!card) return
+      event.preventDefault()
+      toggleTrackSelection(card)
     })
   }
 
@@ -557,7 +594,7 @@
       return `
         <li class="kmusic-library__queue-item${index === snapshot.currentIndex ? ' is-current' : ''}" data-queue-index="${index}">
           <span class="kmusic-library__queue-index">${index + 1}</span>
-          <img class="kmusic-library__queue-cover" src="${escapeHtml(assetUrl(track.cover))}" alt="" loading="lazy">
+          <img class="kmusic-library__queue-cover" src="${escapeHtml(assetUrl(coverPath(track)))}" alt="" loading="lazy">
           <div class="kmusic-library__queue-copy">
             <div class="kmusic-library__queue-title">${escapeHtml(track.title)}</div>
             <div class="kmusic-library__queue-singer">${escapeHtml(singers)}</div>

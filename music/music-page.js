@@ -103,12 +103,16 @@
       if (!record || typeof record.name !== 'string' || !record.name.trim()) {
         throw new Error(`${tableName}[${index}] 缺少有效的 name。`)
       }
+      if (typeof record.translatedName !== 'string' || !record.translatedName.trim()) {
+        throw new Error(`${tableName} 中 ${record.name} 缺少有效的 translatedName。`)
+      }
       if (!Array.isArray(record.aliases)) {
         throw new Error(`${tableName} 中 ${record.name} 的 aliases 必须是数组。`)
       }
       if (!Array.isArray(record.links)) {
         throw new Error(`${tableName} 中 ${record.name} 的 links 必须是数组。`)
       }
+      const translatedName = record.translatedName.trim()
       const aliases = record.aliases.filter(Boolean)
       const links = [...new Set(record.links.filter(link => typeof link === 'string' && link.trim()).map(link => link.trim()))]
       if (!aliases.length && !links.length) {
@@ -116,7 +120,7 @@
       }
       const key = normalize(record.name)
       if (map.has(key)) throw new Error(`${tableName} 中重复定义了 ${record.name}。`)
-      map.set(key, { name: record.name, aliases, links })
+      map.set(key, { name: record.name, translatedName, aliases, links })
     })
     return map
   }
@@ -129,12 +133,20 @@
       .flatMap(name => aliasMap.get(normalize(name))?.aliases || [])
   }
 
+  function translatedNamesFor(names, aliasMap) {
+    const canonicalNames = Array.isArray(names) ? names : [names]
+    return canonicalNames
+      .filter(Boolean)
+      .map(name => aliasMap.get(normalize(name))?.translatedName)
+      .filter(Boolean)
+  }
+
   function directlyLinkedNames(query, aliasMap) {
     const linkedNames = new Set()
     if (!query) return linkedNames
     aliasMap.forEach(entry => {
       // 只用用户的原始查询匹配当前记录，不使用 links 的结果继续查表。
-      if (!normalize([entry.name, ...entry.aliases]).includes(query)) return
+      if (!normalize([entry.name, entry.translatedName, ...entry.aliases]).includes(query)) return
       entry.links.forEach(name => linkedNames.add(normalize(name)))
     })
     return linkedNames
@@ -313,14 +325,23 @@
       const authorNames = track.authors || track.composers || track.author
       const singerAliases = aliasesFor(singerNames, state.singerAliasMap)
       const authorAliases = aliasesFor(authorNames, state.authorAliasMap)
+      const singerTranslatedNames = translatedNamesFor(singerNames, state.singerAliasMap)
+      const authorTranslatedNames = translatedNamesFor(authorNames, state.authorAliasMap)
       const titleText = normalize([track.title, track.translatedTitle])
-      const singerText = normalize(singerNames)
-      const authorText = normalize(authorNames)
+      const singerText = normalize([singerNames, singerTranslatedNames])
+      const authorText = normalize([authorNames, authorTranslatedNames])
       const tagText = normalize(track.tags)
       const titleAliasText = aliasSearchEnabled ? normalize(track.aliases) : ''
       const singerAliasText = aliasSearchEnabled ? normalize(singerAliases) : ''
       const authorAliasText = aliasSearchEnabled ? normalize(authorAliases) : ''
-      const strictGlobalText = normalize([track.title, track.translatedTitle, singerNames, authorNames])
+      const strictGlobalText = normalize([
+        track.title,
+        track.translatedTitle,
+        singerNames,
+        singerTranslatedNames,
+        authorNames,
+        authorTranslatedNames
+      ])
       const aliasGlobalText = aliasSearchEnabled ? normalize([track.aliases, singerAliases, authorAliases]) : ''
 
       const globalMatch = !queries.all ||
@@ -365,6 +386,15 @@
       seen.add(key)
       suggestions.push({ value: label, label, type })
     }
+    const addNames = (names, type, aliasMap) => {
+      ;(Array.isArray(names) ? names : [names]).filter(Boolean).forEach(name => {
+        add(name, type)
+        const translatedName = aliasMap.get(normalize(name))?.translatedName
+        if (translatedName && normalize(translatedName) !== normalize(name)) {
+          add(translatedName, `${type}译名`)
+        }
+      })
+    }
 
     state.tracks.forEach(track => {
       const singerNames = track.singers || track.artists
@@ -374,10 +404,10 @@
         add(track.translatedTitle, '译名')
       }
       if (searchKey === 'all' || searchKey === 'singer') {
-        ;(Array.isArray(singerNames) ? singerNames : [singerNames]).filter(Boolean).forEach(name => add(name, '歌手'))
+        addNames(singerNames, '歌手', state.singerAliasMap)
       }
       if (searchKey === 'all' || searchKey === 'author') {
-        ;(Array.isArray(authorNames) ? authorNames : [authorNames]).filter(Boolean).forEach(name => add(name, '作者'))
+        addNames(authorNames, '作者', state.authorAliasMap)
       }
 
       if (elements.tagSearch.checked && (searchKey === 'all' || searchKey === 'tag')) {
@@ -393,7 +423,7 @@
     if (elements.aliasSearch.checked && (searchKey === 'all' || searchKey === 'singer')) {
       state.singerAliasMap.forEach(entry => {
         entry.aliases.forEach(alias => add(entry.name, '歌手', alias))
-        if (normalize([entry.name, ...entry.aliases]).includes(query)) {
+        if (normalize([entry.name, entry.translatedName, ...entry.aliases]).includes(query)) {
           entry.links.forEach(name => add(name, '关联歌手', query))
         }
       })
@@ -401,7 +431,7 @@
     if (elements.aliasSearch.checked && (searchKey === 'all' || searchKey === 'author')) {
       state.authorAliasMap.forEach(entry => {
         entry.aliases.forEach(alias => add(entry.name, '作者', alias))
-        if (normalize([entry.name, ...entry.aliases]).includes(query)) {
+        if (normalize([entry.name, entry.translatedName, ...entry.aliases]).includes(query)) {
           entry.links.forEach(name => add(name, '关联作者', query))
         }
       })

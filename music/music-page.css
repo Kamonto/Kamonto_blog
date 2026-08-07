@@ -306,6 +306,91 @@
   font-weight: 400;
 }
 
+.kmusic-library__tag-browser {
+  display: grid;
+  justify-items: start;
+  gap: 9px;
+}
+
+.kmusic-library__tag-browser-toggle span {
+  color: var(--library-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.kmusic-library__tag-browser-panel {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--library-border);
+  border-radius: 13px;
+  background: var(--library-surface-solid);
+  box-shadow: 0 10px 26px rgba(31, 45, 54, 0.1);
+}
+
+.kmusic-library__tag-browser-panel[hidden] {
+  display: none;
+}
+
+.kmusic-library__tag-browser-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-bottom: 10px;
+}
+
+.kmusic-library__tag-browser-head strong {
+  font-size: 13px;
+}
+
+.kmusic-library__tag-browser-head span,
+.kmusic-library__tag-browser-empty {
+  color: var(--library-muted);
+  font-size: 11px;
+}
+
+.kmusic-library__tag-browser-list {
+  display: flex;
+  max-height: 230px;
+  flex-wrap: wrap;
+  gap: 7px;
+  overflow-y: auto;
+}
+
+.kmusic-library__tag-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border: 1px solid var(--library-border);
+  border-radius: 999px;
+  color: var(--library-text);
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.kmusic-library__tag-choice small {
+  color: var(--library-muted);
+  font-size: 9px;
+}
+
+.kmusic-library__tag-choice:hover,
+.kmusic-library__tag-choice.is-active {
+  border-color: var(--library-accent);
+  color: var(--library-accent-strong);
+  background: rgba(57, 197, 187, 0.11);
+}
+
+.kmusic-library__tag-choice:focus-visible,
+.kmusic-library__tag:focus-visible {
+  outline: 3px solid rgba(57, 197, 187, 0.22);
+  outline-offset: 2px;
+}
+
 .kmusic-library__toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -479,10 +564,19 @@
 
 .kmusic-library__tag {
   padding: 3px 7px;
+  border: 0;
   border-radius: 999px;
   color: var(--library-accent-strong);
   background: rgba(57, 197, 187, 0.11);
+  font: inherit;
   font-size: 10px;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.kmusic-library__tag:hover {
+  color: var(--library-surface-solid);
+  background: var(--library-accent-strong);
 }
 
 .kmusic-library__empty,

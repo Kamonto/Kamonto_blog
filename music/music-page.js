@@ -16,6 +16,8 @@
     trackMap: new Map(),
     singerAliasMap: new Map(),
     authorAliasMap: new Map(),
+    tagDisplayMap: new Map(),
+    tagCatalog: [],
     filtered: [],
     selected: new Set(),
     suggestions: [],
@@ -96,6 +98,54 @@
     return text(value).toLocaleLowerCase().normalize('NFKC').trim()
   }
 
+  function tagValues(track) {
+    const seen = new Set()
+    return (Array.isArray(track?.tags) ? track.tags : [])
+      .filter(tag => typeof tag === 'string' && tag.trim())
+      .map(tag => tag.trim())
+      .filter(tag => {
+        const key = normalize(tag)
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+  }
+
+  function buildTagDisplayMap(records) {
+    if (!Array.isArray(records)) throw new Error('music-library.json 中的 tagSettings 必须是数组。')
+    const map = new Map()
+    records.forEach((record, index) => {
+      if (!record || typeof record.name !== 'string' || !record.name.trim()) {
+        throw new Error(`tagSettings[${index}] 缺少有效的 name。`)
+      }
+      if (typeof record.showOnCard !== 'boolean') {
+        throw new Error(`tagSettings 中 ${record.name} 的 showOnCard 必须是布尔值。`)
+      }
+      const key = normalize(record.name)
+      if (map.has(key)) throw new Error(`tagSettings 中重复定义了 ${record.name}。`)
+      map.set(key, record.showOnCard)
+    })
+    return map
+  }
+
+  function collectTagCatalog(tracks) {
+    const catalog = new Map()
+    tracks.forEach(track => {
+      tagValues(track).forEach(tag => {
+        const key = normalize(tag)
+        const entry = catalog.get(key)
+        entry ? entry.count += 1 : catalog.set(key, { name: tag, count: 1 })
+      })
+    })
+    return [...catalog.values()].sort((left, right) =>
+      right.count - left.count || left.name.localeCompare(right.name, 'zh-CN')
+    )
+  }
+
+  function visibleTagsFor(track) {
+    return tagValues(track).filter(tag => state.tagDisplayMap.get(normalize(tag)) === true)
+  }
+
   function buildAliasMap(records, tableName) {
     if (!Array.isArray(records)) throw new Error(`music-library.json 中的 ${tableName} 必须是数组。`)
     const map = new Map()
@@ -115,8 +165,8 @@
       const translatedName = record.translatedName.trim()
       const aliases = record.aliases.filter(Boolean)
       const links = [...new Set(record.links.filter(link => typeof link === 'string' && link.trim()).map(link => link.trim()))]
-      if (!aliases.length && !links.length) {
-        throw new Error(`${tableName} 中 ${record.name} 没有有效别名或关联名称，请删除该条记录。`)
+      if (!aliases.length && !links.length && normalize(translatedName) === normalize(record.name)) {
+        throw new Error(`${tableName} 中 ${record.name} 没有有效译名、别名或关联名称，请删除该条记录。`)
       }
       const key = normalize(record.name)
       if (map.has(key)) throw new Error(`${tableName} 中重复定义了 ${record.name}。`)
@@ -193,6 +243,11 @@
     elements.tagField = document.getElementById('kmusic-search-tag-field')
     elements.tagSearch = document.getElementById('kmusic-search-tags')
     elements.aliasSearch = document.getElementById('kmusic-search-aliases')
+    elements.tagBrowser = document.querySelector('.kmusic-library__tag-browser')
+    elements.tagBrowserToggle = document.getElementById('kmusic-tag-browser-toggle')
+    elements.tagBrowserCount = document.getElementById('kmusic-tag-browser-count')
+    elements.tagBrowserPanel = document.getElementById('kmusic-tag-browser-panel')
+    elements.tagBrowserList = document.getElementById('kmusic-tag-browser-list')
     elements.resetSearch = document.getElementById('kmusic-reset-search')
     elements.selectResults = document.getElementById('kmusic-select-results')
     elements.clearSelection = document.getElementById('kmusic-clear-selection')
@@ -216,6 +271,7 @@
 
     state.singerAliasMap = buildAliasMap(data.singerAliases, 'singerAliases')
     state.authorAliasMap = buildAliasMap(data.authorAliases, 'authorAliases')
+    state.tagDisplayMap = buildTagDisplayMap(data.tagSettings)
 
     const ids = new Set()
     state.tracks = data.tracks.filter(track => {
@@ -224,8 +280,10 @@
       return true
     })
     state.trackMap = new Map(state.tracks.map(track => [track.id, track]))
+    state.tagCatalog = collectTagCatalog(state.tracks)
     state.filtered = [...state.tracks]
     elements.total.textContent = `${state.tracks.length} 首本地歌曲`
+    renderTagBrowser()
   }
 
   function bindSearch() {
@@ -235,6 +293,7 @@
       input.addEventListener('input', () => {
         state.activeSearchKey = key
         applyFilters()
+        if (key === 'tag') syncTagBrowserSelection()
         renderSuggestions(key)
       })
       input.addEventListener('focus', () => renderSuggestions(key))
@@ -259,8 +318,23 @@
       renderSuggestions(state.activeSearchKey)
     })
 
+    elements.tagBrowserToggle.addEventListener('click', () => {
+      setTagBrowserOpen(elements.tagBrowserPanel.hidden)
+    })
+
+    elements.tagBrowserList.addEventListener('click', event => {
+      const button = event.target.closest('[data-tag-filter]')
+      if (!button) return
+      selectTag(button.dataset.tagFilter)
+    })
+
     document.addEventListener('click', event => {
       if (!event.target.closest('.kmusic-library__autocomplete')) hideSuggestions()
+      if (!event.target.closest('.kmusic-library__tag-browser')) setTagBrowserOpen(false)
+    }, { signal })
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') setTagBrowserOpen(false)
     }, { signal })
 
     elements.resetSearch.addEventListener('click', () => {
@@ -268,6 +342,7 @@
       elements.tagSearch.checked = false
       elements.aliasSearch.checked = false
       syncTagSearchState()
+      setTagBrowserOpen(false)
       hideSuggestions()
       applyFilters()
       elements.searchInputs.all.focus()
@@ -289,6 +364,9 @@
   function syncTagSearchState() {
     const enabled = elements.tagSearch.checked
     const input = elements.searchInputs.tag
+    elements.searchInputs.all.placeholder = enabled
+      ? '跨歌名、歌手、作者和标签搜索'
+      : '跨歌名、歌手和作者搜索'
     input.disabled = !enabled
     input.setAttribute('aria-disabled', String(!enabled))
     input.placeholder = enabled ? '仅搜索标签' : '请先勾选“标签搜索”'
@@ -297,6 +375,50 @@
       input.value = ''
       if (state.activeSearchKey === 'tag') hideSuggestions()
     }
+    syncTagBrowserSelection()
+  }
+
+  function setTagBrowserOpen(open) {
+    const expanded = Boolean(open)
+    elements.tagBrowserPanel.hidden = !expanded
+    elements.tagBrowserToggle.setAttribute('aria-expanded', String(expanded))
+  }
+
+  function renderTagBrowser() {
+    elements.tagBrowserCount.textContent = `(${state.tagCatalog.length})`
+    if (!state.tagCatalog.length) {
+      elements.tagBrowserList.innerHTML = '<div class="kmusic-library__tag-browser-empty">音乐库中暂时还没有标签。</div>'
+      return
+    }
+    elements.tagBrowserList.innerHTML = state.tagCatalog.map(tag => `
+      <button type="button" class="kmusic-library__tag-choice" data-tag-filter="${escapeHtml(tag.name)}" aria-pressed="false">
+        <span>${escapeHtml(tag.name)}</span><small>${tag.count} 首</small>
+      </button>`).join('')
+    syncTagBrowserSelection()
+  }
+
+  function syncTagBrowserSelection() {
+    if (!elements.tagBrowserList) return
+    const selected = elements.tagSearch.checked ? normalize(elements.searchInputs.tag.value) : ''
+    elements.tagBrowserList.querySelectorAll('[data-tag-filter]').forEach(button => {
+      const active = Boolean(selected) && normalize(button.dataset.tagFilter) === selected
+      button.classList.toggle('is-active', active)
+      button.setAttribute('aria-pressed', String(active))
+    })
+  }
+
+  function selectTag(tag) {
+    const value = text(tag).trim()
+    if (!value) return
+    // 当前界面只写入一个标签；未来若开放多标签，可在这里改为维护标签数组。
+    elements.tagSearch.checked = true
+    elements.searchInputs.tag.value = value
+    state.activeSearchKey = 'tag'
+    syncTagSearchState()
+    setTagBrowserOpen(false)
+    applyFilters()
+    elements.searchInputs.tag.focus()
+    hideSuggestions()
   }
 
   function searchQueries() {
@@ -401,7 +523,9 @@
       const authorNames = track.authors || track.composers || track.author
       if (searchKey === 'all' || searchKey === 'title') {
         add(track.title, '歌名')
-        add(track.translatedTitle, '译名')
+        if (track.translatedTitle && normalize(track.translatedTitle) !== normalize(track.title)) {
+          add(track.translatedTitle, '译名')
+        }
       }
       if (searchKey === 'all' || searchKey === 'singer') {
         addNames(singerNames, '歌手', state.singerAliasMap)
@@ -422,16 +546,22 @@
 
     if (elements.aliasSearch.checked && (searchKey === 'all' || searchKey === 'singer')) {
       state.singerAliasMap.forEach(entry => {
-        entry.aliases.forEach(alias => add(entry.name, '歌手', alias))
         if (normalize([entry.name, entry.translatedName, ...entry.aliases]).includes(query)) {
+          add(entry.name, '歌手', query)
+          if (normalize(entry.translatedName) !== normalize(entry.name)) {
+            add(entry.translatedName, '歌手译名', query)
+          }
           entry.links.forEach(name => add(name, '关联歌手', query))
         }
       })
     }
     if (elements.aliasSearch.checked && (searchKey === 'all' || searchKey === 'author')) {
       state.authorAliasMap.forEach(entry => {
-        entry.aliases.forEach(alias => add(entry.name, '作者', alias))
         if (normalize([entry.name, entry.translatedName, ...entry.aliases]).includes(query)) {
+          add(entry.name, '作者', query)
+          if (normalize(entry.translatedName) !== normalize(entry.name)) {
+            add(entry.translatedName, '作者译名', query)
+          }
           entry.links.forEach(name => add(name, '关联作者', query))
         }
       })
@@ -498,6 +628,7 @@
     elements.searchInputs[searchKey].value = suggestion.value
     hideSuggestions()
     applyFilters()
+    if (searchKey === 'tag') syncTagBrowserSelection()
     elements.searchInputs[searchKey].focus()
   }
 
@@ -600,7 +731,7 @@
       const translatedTitle = text(track.translatedTitle)
       const singers = formatPeople(track.singers || track.artists) || '未知歌手'
       const authors = formatPeople(track.authors || track.composers || track.author) || '未知作者'
-      const tags = Array.isArray(track.tags) ? track.tags : []
+      const tags = visibleTagsFor(track)
       return `
         <article class="kmusic-library__track-card${selected ? ' is-selected' : ''}" data-track-id="${escapeHtml(track.id)}" tabindex="0" role="option" aria-selected="${selected}">
           <input class="kmusic-library__check" type="checkbox" aria-label="选择 ${escapeHtml(track.title)}" ${selected ? 'checked' : ''}>
@@ -611,9 +742,9 @@
             <div class="kmusic-library__track-singer"><i class="fas fa-microphone-alt"></i> ${escapeHtml(singers)}</div>
             <div class="kmusic-library__track-meta"><i class="fas fa-pen-nib"></i> ${escapeHtml(authors)} · ${escapeHtml(formatDuration(track.duration))}</div>
           </div>
-          <div class="kmusic-library__tag-list">
-            ${tags.slice(0, 4).map(tag => `<span class="kmusic-library__tag">${escapeHtml(tag)}</span>`).join('')}
-          </div>
+          ${tags.length ? `<div class="kmusic-library__tag-list">
+            ${tags.map(tag => `<button type="button" class="kmusic-library__tag" data-tag-filter="${escapeHtml(tag)}" title="搜索标签：${escapeHtml(tag)}">${escapeHtml(tag)}</button>`).join('')}
+          </div>` : ''}
           <div class="kmusic-library__track-actions">
             <button type="button" class="kmusic-library__button" data-action="play"><i class="fas fa-play"></i> 播放</button>
             <button type="button" class="kmusic-library__button" data-action="add"><i class="fas fa-plus"></i> 加入队列</button>
@@ -640,6 +771,12 @@
     })
 
     elements.grid.addEventListener('click', event => {
+      const tagButton = event.target.closest('[data-tag-filter]')
+      if (tagButton) {
+        selectTag(tagButton.dataset.tagFilter)
+        return
+      }
+
       const button = event.target.closest('[data-action]')
       if (button) {
         const card = button.closest('[data-track-id]')

@@ -1,9 +1,9 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>音乐馆 | Kamonto's Little Planet</title><meta name="author" content="Kamonto"><meta name="copyright" content="Kamonto"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="referrer" content="no-referrer"><meta name="description" content="Kamonto Music Library Kamonto 音乐馆 浏览本地音乐、组合搜索歌曲信息，并把喜欢的歌曲加入网站底部的全局播放队列。队列与播放设置会保存在当前浏览器中。(Made by ChatGPT 5.6 Sol)  正在读取音乐库… 支持严格、标签与别名搜索 支持自定义队列与多种播放模式       搜索音乐 使用全局搜索，或分别按歌名、歌手、作者和标签组合筛选；可按需扩">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>音乐馆 | Kamonto's Little Planet</title><meta name="author" content="Kamonto"><meta name="copyright" content="Kamonto"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="referrer" content="no-referrer"><meta name="description" content="Kamonto Music Library Kamonto 音乐馆 浏览本地音乐、组合搜索歌曲信息，并把喜欢的歌曲加入网站底部的全局播放队列。队列与播放设置会保存在当前浏览器中。(Made by ChatGPT 5.6 Sol)     音乐馆最近更新 快速查看音乐馆最近加入或更新的歌曲       Kamonto今日推荐 看看 Kamonto 今天为你挑选的音乐      正在读取音乐">
 <meta property="og:type" content="website">
 <meta property="og:title" content="音乐馆">
 <meta property="og:url" content="https://kamonto.github.io/Kamonto_blog/music/index.html">
 <meta property="og:site_name" content="Kamonto&#39;s Little Planet">
-<meta property="og:description" content="Kamonto Music Library Kamonto 音乐馆 浏览本地音乐、组合搜索歌曲信息，并把喜欢的歌曲加入网站底部的全局播放队列。队列与播放设置会保存在当前浏览器中。(Made by ChatGPT 5.6 Sol)  正在读取音乐库… 支持严格、标签与别名搜索 支持自定义队列与多种播放模式       搜索音乐 使用全局搜索，或分别按歌名、歌手、作者和标签组合筛选；可按需扩">
+<meta property="og:description" content="Kamonto Music Library Kamonto 音乐馆 浏览本地音乐、组合搜索歌曲信息，并把喜欢的歌曲加入网站底部的全局播放队列。队列与播放设置会保存在当前浏览器中。(Made by ChatGPT 5.6 Sol)     音乐馆最近更新 快速查看音乐馆最近加入或更新的歌曲       Kamonto今日推荐 看看 Kamonto 今天为你挑选的音乐      正在读取音乐">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/Kamonto/Kamonto_blog@gh-pages/img/profile_picture.png">
 <meta property="article:published_time" content="2025-03-25T14:56:37.000Z">
@@ -150,6 +150,24 @@
 <div class="kmusic-library__eyebrow"><i class="fas fa-headphones-alt"></i> Kamonto Music Library</div>
 <h1>Kamonto 音乐馆</h1>
 <p>浏览本地音乐、组合搜索歌曲信息，并把喜欢的歌曲加入网站底部的全局播放队列。队列与播放设置会保存在当前浏览器中。(Made by ChatGPT 5.6 Sol)</p>
+<div class="kmusic-library__featured-tags" aria-label="音乐馆快捷推荐">
+<button type="button" class="kmusic-library__featured-tag" data-featured-tag="音乐馆最近更新">
+<span class="kmusic-library__featured-tag-icon"><i class="fas fa-history"></i></span>
+<span class="kmusic-library__featured-tag-copy">
+<strong>音乐馆最近更新</strong>
+<small>快速查看音乐馆最近加入或更新的歌曲</small>
+</span>
+<i class="fas fa-chevron-right kmusic-library__featured-tag-arrow"></i>
+</button>
+<button type="button" class="kmusic-library__featured-tag kmusic-library__featured-tag--recommend" data-featured-tag="Kamonto今日推荐">
+<span class="kmusic-library__featured-tag-icon"><i class="fas fa-star"></i></span>
+<span class="kmusic-library__featured-tag-copy">
+<strong>Kamonto今日推荐</strong>
+<small>看看 Kamonto 今天为你挑选的音乐</small>
+</span>
+<i class="fas fa-chevron-right kmusic-library__featured-tag-arrow"></i>
+</button>
+</div>
 <div class="kmusic-library__stats">
 <span class="kmusic-library__stat" id="kmusic-library-total">正在读取音乐库…</span>
 <span class="kmusic-library__stat">支持严格、标签与别名搜索</span>
@@ -208,6 +226,7 @@
 </div>
 </div>
 
+<div class="kmusic-library__search-options kmusic-library__tag-browser">
 <fieldset class="kmusic-library__search-scopes">
 <legend>搜索范围</legend>
 <label class="kmusic-library__scope is-required" title="严格搜索始终启用">
@@ -224,7 +243,6 @@
 </label>
 </fieldset>
 
-<div class="kmusic-library__tag-browser">
 <button type="button" class="kmusic-library__button kmusic-library__tag-browser-toggle" id="kmusic-tag-browser-toggle" aria-expanded="false" aria-controls="kmusic-tag-browser-panel">
 <i class="fas fa-tags"></i> 浏览标签 <span id="kmusic-tag-browser-count"></span>
 </button>

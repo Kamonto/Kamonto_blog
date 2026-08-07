@@ -248,6 +248,7 @@
     elements.tagBrowserCount = document.getElementById('kmusic-tag-browser-count')
     elements.tagBrowserPanel = document.getElementById('kmusic-tag-browser-panel')
     elements.tagBrowserList = document.getElementById('kmusic-tag-browser-list')
+    elements.featuredTags = [...document.querySelectorAll('[data-featured-tag]')]
     elements.resetSearch = document.getElementById('kmusic-reset-search')
     elements.selectResults = document.getElementById('kmusic-select-results')
     elements.clearSelection = document.getElementById('kmusic-clear-selection')
@@ -326,6 +327,10 @@
       const button = event.target.closest('[data-tag-filter]')
       if (!button) return
       selectTag(button.dataset.tagFilter)
+    })
+
+    elements.featuredTags.forEach(button => {
+      button.addEventListener('click', () => selectTag(button.dataset.featuredTag, { clearSearches: true }))
     })
 
     document.addEventListener('click', event => {
@@ -407,9 +412,12 @@
     })
   }
 
-  function selectTag(tag) {
+  function selectTag(tag, options = {}) {
     const value = text(tag).trim()
     if (!value) return
+    if (options.clearSearches) {
+      SEARCH_KEYS.forEach(key => { elements.searchInputs[key].value = '' })
+    }
     // 当前界面只写入一个标签；未来若开放多标签，可在这里改为维护标签数组。
     elements.tagSearch.checked = true
     elements.searchInputs.tag.value = value

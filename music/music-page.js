@@ -165,9 +165,8 @@
       const translatedName = record.translatedName.trim()
       const aliases = record.aliases.filter(Boolean)
       const links = [...new Set(record.links.filter(link => typeof link === 'string' && link.trim()).map(link => link.trim()))]
-      if (!aliases.length && !links.length && normalize(translatedName) === normalize(record.name)) {
-        throw new Error(`${tableName} 中 ${record.name} 没有有效译名、别名或关联名称，请删除该条记录。`)
-      }
+      // 允许只登记标准名称的条目：作者已被完整收录，但萌娘百科未记载可用译名或别名时，
+      // 仍可保留结构完整的记录；标准名称搜索继续由曲目本身提供，不会产生额外匹配。
       const key = normalize(record.name)
       if (map.has(key)) throw new Error(`${tableName} 中重复定义了 ${record.name}。`)
       map.set(key, { name: record.name, translatedName, aliases, links })

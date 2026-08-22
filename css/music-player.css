@@ -204,20 +204,6 @@ html.kmusic-player-expanded body {
   background: linear-gradient(135deg, var(--kmusic-accent), var(--kmusic-accent-strong));
 }
 
-.kmusic-player__button--mode,
-.kmusic-player__button--mode.is-active {
-  color: #000;
-  background: transparent;
-  transition: color 0.2s ease, transform 0.2s ease;
-}
-
-.kmusic-player__button--mode:hover,
-.kmusic-player__button--mode.is-active:hover,
-.kmusic-player__button--mode:focus-visible {
-  color: var(--kmusic-accent-strong);
-  background: transparent;
-}
-
 .kmusic-player__button--queue.is-active {
   color: var(--kmusic-accent-strong);
   background: rgba(57, 197, 187, 0.14);

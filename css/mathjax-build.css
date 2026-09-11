@@ -1,0 +1,24 @@
+mjx-container[jax='SVG'] {
+  direction: ltr;
+}
+
+mjx-container[jax='SVG'] > svg {
+  display: inline-block;
+  max-width: 100%;
+  min-width: 1px;
+  min-height: 1px;
+  overflow: visible;
+}
+
+mjx-container[jax='SVG'][display='true'] {
+  display: block;
+  margin: 1em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: center;
+}
+
+mjx-container[jax='SVG'] path[data-c],
+mjx-container[jax='SVG'] use[data-c] {
+  stroke-width: 3;
+}

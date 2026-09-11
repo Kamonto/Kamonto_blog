@@ -8,6 +8,7 @@
   const lifecycle = new AbortController()
   const signal = lifecycle.signal
   const root = normalizeRoot(window.GLOBAL_CONFIG && window.GLOBAL_CONFIG.root)
+  const LIBRARY_URL = '/Kamonto_blog/audio/music-library.json'
   const DEFAULT_COVERS = ['/Kamonto_blog/cover/default1.png', '/Kamonto_blog/cover/default2.png']
   const SEARCH_KEYS = ['all', 'title', 'singer', 'author', 'tag']
   const elements = {}
@@ -264,9 +265,24 @@
   }
 
   async function loadLibrary() {
-    const response = await fetch(`/Kamonto_blog/audio/music-library.json`, { cache: 'no-cache' })
-    if (!response.ok) throw new Error(`音乐库请求失败：HTTP ${response.status}`)
-    const data = await response.json()
+    if (!window.KMusicLibraryPromise) {
+      const request = fetch(LIBRARY_URL, { cache: 'default', credentials: 'same-origin' })
+        .then(response => {
+          if (!response.ok) throw new Error(`音乐库请求失败：HTTP ${response.status}`)
+          return response.json()
+        })
+        .then(data => {
+          if (!data || !Array.isArray(data.tracks)) throw new Error('music-library.json 中缺少 tracks 数组。')
+          return data
+        })
+        .catch(error => {
+          if (window.KMusicLibraryPromise === request) delete window.KMusicLibraryPromise
+          throw error
+        })
+      window.KMusicLibraryPromise = request
+    }
+
+    const data = await window.KMusicLibraryPromise
     if (!data || !Array.isArray(data.tracks)) throw new Error('music-library.json 中缺少 tracks 数组。')
 
     state.singerAliasMap = buildAliasMap(data.singerAliases, 'singerAliases')

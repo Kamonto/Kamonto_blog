@@ -4,6 +4,7 @@
   if (window.KMusicPlayer && window.KMusicPlayer.ready) return
 
   const STORAGE_KEY = 'kmusic-player-state-v1'
+  const LIBRARY_URL = '/Kamonto_blog/audio/music-library.json'
   const MODES = ['list', 'one', 'shuffle']
   const DEFAULT_COVERS = ['/Kamonto_blog/cover/default1.png', '/Kamonto_blog/cover/default2.png']
   const MODE_META = {
@@ -345,6 +346,7 @@
         volume: state.volume,
         muted: state.muted,
         collapsed: state.collapsed,
+        wasPlaying: !audio.paused && !audio.ended,
         currentTime: getEffectiveCurrentTime(),
         shuffleState: state.mode === 'shuffle'
           ? {
@@ -606,6 +608,7 @@
     })
 
     window.addEventListener('beforeunload', () => persist(true))
+    window.addEventListener('pagehide', () => persist(true))
   }
 
   function hydrate(saved) {
@@ -1081,12 +1084,30 @@
     })
   }
 
+  function loadLibraryData() {
+    if (window.KMusicLibraryPromise) return window.KMusicLibraryPromise
+
+    const request = fetch(LIBRARY_URL, { cache: 'default', credentials: 'same-origin' })
+      .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+        return response.json()
+      })
+      .then(data => {
+        if (!data || !Array.isArray(data.tracks)) throw new Error('music-library.json 中缺少 tracks 数组。')
+        return data
+      })
+      .catch(error => {
+        if (window.KMusicLibraryPromise === request) delete window.KMusicLibraryPromise
+        throw error
+      })
+
+    window.KMusicLibraryPromise = request
+    return request
+  }
+
   async function init() {
     try {
-      const response = await fetch(`/Kamonto_blog/audio/music-library.json`, { cache: 'no-cache' })
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      const data = await response.json()
-      if (!data || !Array.isArray(data.tracks)) throw new Error('music-library.json 中缺少 tracks 数组。')
+      const data = await loadLibraryData()
 
       const seen = new Set()
       state.library = data.tracks.filter(track => {
@@ -1118,9 +1139,38 @@
     }
   }
 
+  let initPromise = null
+
+  function ensureInitialized() {
+    if (!initPromise) initPromise = init()
+    return initPromise
+  }
+
+  function startPlayer() {
+    const saved = readSavedState()
+    const isMusicPage = Boolean(document.getElementById('kmusic-library'))
+    const hotStart = isMusicPage || saved.wasPlaying === true
+
+    if (hotStart) {
+      ensureInitialized()
+      return
+    }
+
+    const initializeWhenIdle = () => {
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(() => ensureInitialized(), { timeout: 2000 })
+      } else {
+        window.setTimeout(() => ensureInitialized(), 750)
+      }
+    }
+
+    if (document.readyState === 'complete') initializeWhenIdle()
+    else window.addEventListener('load', initializeWhenIdle, { once: true })
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init, { once: true })
+    document.addEventListener('DOMContentLoaded', startPlayer, { once: true })
   } else {
-    init()
+    startPlayer()
   }
 })()

@@ -627,6 +627,7 @@ html.kmusic-player-expanded body {
 
 .kmusic-player__warning-button {
   display: inline-flex;
+  flex: 1 0 auto;
   min-height: 40px;
   align-items: center;
   justify-content: center;

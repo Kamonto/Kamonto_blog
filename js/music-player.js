@@ -458,12 +458,12 @@
           <div class="kmusic-player__warning-copy">
             <p class="kmusic-player__warning-eyebrow">播放前提示</p>
             <h2 id="kmusic-warning-title">这首歌曲可能包含令人不适的元素</h2>
-            <p id="kmusic-warning-description">歌曲可能包含恐怖、惊吓、强烈音效或其他令人不适的内容。你可以继续播放，或跳到下一首歌曲。</p>
+            <p id="kmusic-warning-description">歌曲可能包含恐怖、惊吓、强烈音效或其他令人不适的内容。<br>你可以继续播放，或跳到下一首歌曲。</p>
           </div>
           <div class="kmusic-player__warning-track-card">
             <img class="kmusic-player__warning-cover" alt="">
             <div class="kmusic-player__warning-track-main">
-              <span class="kmusic-player__warning-track-label">当前警告歌曲</span>
+              <span class="kmusic-player__warning-track-label">即将播放歌曲</span>
               <strong class="kmusic-player__warning-track"></strong>
               <span class="kmusic-player__warning-track-translation" hidden></span>
             </div>

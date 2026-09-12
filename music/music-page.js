@@ -968,7 +968,10 @@
     elements.safetyStatus.textContent = `已屏蔽 ${blockedCount} 首 · ${warningStatus}`
     if (elements.blockSelected) elements.blockSelected.hidden = !safety.blockingEnabled
     if (elements.unblockSelected) elements.unblockSelected.hidden = !safety.blockingEnabled
-    if (elements.resetWarnings) elements.resetWarnings.hidden = !safety.warningEnabled
+    if (elements.resetWarnings) {
+      elements.resetWarnings.hidden = !safety.warningEnabled
+      elements.resetWarnings.disabled = !safety.warningsDisabled && safety.warningDismissedTrackIds.length === 0
+    }
     if (elements.unblockAll) {
       elements.unblockAll.hidden = !safety.blockingEnabled
       elements.unblockAll.disabled = blockedCount === 0

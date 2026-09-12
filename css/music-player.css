@@ -463,7 +463,7 @@ html.kmusic-player-expanded body {
 
 .kmusic-player__warning-dialog {
   display: grid;
-  width: min(560px, 100%);
+  width: min(760px, 100%);
   max-height: calc(100vh - 44px);
   overflow: auto;
   grid-template-columns: 52px minmax(0, 1fr);
@@ -526,6 +526,7 @@ html.kmusic-player-expanded body {
 
 .kmusic-player__warning-preferences {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 9px;
   padding: 13px 15px;
   border: 1px solid var(--kmusic-border);
@@ -550,8 +551,8 @@ html.kmusic-player-expanded body {
 }
 
 .kmusic-player__warning-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 9px;
 }
 
@@ -568,6 +569,7 @@ html.kmusic-player-expanded body {
   background: transparent;
   font: inherit;
   font-size: 13px;
+  white-space: nowrap;
   cursor: pointer;
   transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }

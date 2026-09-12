@@ -48,7 +48,6 @@
     shuffleQueueKey: '',
     blockedTrackIds: new Set(),
     warningDismissedTrackIds: new Set(),
-    warningApprovedTrackIds: new Set(),
     warningsDisabled: false,
     warningDialogTrackId: null,
     warningDialogPromise: null,
@@ -577,7 +576,6 @@
     state.warningPreviousFocus = document.activeElement
     el.warningTrack.textContent = track.title
     el.warningTrackOption.checked = false
-    el.warningTrackOption.disabled = false
     el.warningAllOption.checked = false
     el.warningBlockButtons.forEach(button => { button.hidden = !CONTENT_SAFETY_DEMO.blockingEnabled })
     el.warningBackdrop.hidden = false
@@ -590,8 +588,7 @@
     return Boolean(
       isWarningTrack(track) &&
       !state.warningsDisabled &&
-      !state.warningDismissedTrackIds.has(track.id) &&
-      !state.warningApprovedTrackIds.has(track.id)
+      !state.warningDismissedTrackIds.has(track.id)
     )
   }
 
@@ -625,8 +622,11 @@
       finishWarningDialog(action)
     })
 
+    el.warningTrackOption.addEventListener('change', () => {
+      if (el.warningTrackOption.checked) el.warningAllOption.checked = false
+    })
+
     el.warningAllOption.addEventListener('change', () => {
-      el.warningTrackOption.disabled = el.warningAllOption.checked
       if (el.warningAllOption.checked) el.warningTrackOption.checked = false
     })
 
@@ -877,10 +877,9 @@
   }
 
   function resetWarningPreferences() {
-    const changed = state.warningsDisabled || state.warningDismissedTrackIds.size || state.warningApprovedTrackIds.size
+    const changed = state.warningsDisabled || state.warningDismissedTrackIds.size
     state.warningsDisabled = false
     state.warningDismissedTrackIds.clear()
-    state.warningApprovedTrackIds.clear()
     persistSafetyPreferences()
     if (changed) emit('warningpreferencechange')
     return Boolean(changed)
@@ -972,7 +971,6 @@
         return false
       }
       if (action !== 'play') return false
-      state.warningApprovedTrackIds.add(track.id)
     }
 
     if (currentTrack()?.id !== track.id) return false

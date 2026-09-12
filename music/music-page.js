@@ -460,6 +460,11 @@
     }
   }
 
+  function sameTrackResults(previous, next) {
+    return previous.length === next.length &&
+      previous.every((track, index) => track.id === next[index]?.id)
+  }
+
   function applyFilters() {
     const queries = searchQueries()
     const aliasSearchEnabled = elements.aliasSearch.checked
@@ -471,7 +476,7 @@
       authors: aliasSearchEnabled ? directlyLinkedNames(queries.author, state.authorAliasMap) : new Set()
     }
 
-    state.filtered = state.tracks.filter(track => {
+    const filtered = state.tracks.filter(track => {
       const singerNames = track.singers || track.artists
       const authorNames = track.authors || track.composers || track.author
       const singerAliases = aliasesFor(singerNames, state.singerAliasMap)
@@ -522,6 +527,11 @@
 
       return globalMatch && titleMatch && singerMatch && authorMatch && tagMatch
     })
+
+    if (!sameTrackResults(state.filtered, filtered)) {
+      state.selected.clear()
+    }
+    state.filtered = filtered
 
     renderTracks()
   }

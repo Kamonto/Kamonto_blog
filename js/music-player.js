@@ -458,11 +458,19 @@
           <div class="kmusic-player__warning-copy">
             <p class="kmusic-player__warning-eyebrow">播放前提示</p>
             <h2 id="kmusic-warning-title">这首歌曲可能包含令人不适的元素</h2>
-            <p id="kmusic-warning-description">《<span class="kmusic-player__warning-track"></span>》可能包含恐怖、惊吓、强烈音效或其他令人不适的内容。你可以继续播放，或跳到下一首歌曲。</p>
+            <p id="kmusic-warning-description">歌曲可能包含恐怖、惊吓、强烈音效或其他令人不适的内容。你可以继续播放，或跳到下一首歌曲。</p>
+          </div>
+          <div class="kmusic-player__warning-track-card">
+            <img class="kmusic-player__warning-cover" alt="">
+            <div class="kmusic-player__warning-track-main">
+              <span class="kmusic-player__warning-track-label">当前警告歌曲</span>
+              <strong class="kmusic-player__warning-track"></strong>
+              <span class="kmusic-player__warning-track-translation" hidden></span>
+            </div>
           </div>
           <div class="kmusic-player__warning-preferences">
-            <label><input type="checkbox" data-kmusic-warning-option="track"> 此歌曲以后不再提醒</label>
-            <label><input type="checkbox" data-kmusic-warning-option="all"> 任何歌曲都不再提醒</label>
+            <label class="kmusic-player__warning-option"><input type="checkbox" data-kmusic-warning-option="track"><span>此歌曲以后不再提醒</span></label>
+            <label class="kmusic-player__warning-option"><input type="checkbox" data-kmusic-warning-option="all"><span>任何歌曲都不再提醒</span></label>
           </div>
           <div class="kmusic-player__warning-actions">
             <button type="button" class="kmusic-player__warning-button kmusic-player__warning-button--primary" data-kmusic-warning-action="play"><i class="fas fa-play"></i> 确认播放</button>
@@ -538,7 +546,9 @@
     el.error = wrapper.querySelector('.kmusic-player__error')
     el.warningBackdrop = wrapper.querySelector('.kmusic-player__warning-backdrop')
     el.warningDialog = wrapper.querySelector('.kmusic-player__warning-dialog')
+    el.warningCover = wrapper.querySelector('.kmusic-player__warning-cover')
     el.warningTrack = wrapper.querySelector('.kmusic-player__warning-track')
+    el.warningTrackTranslation = wrapper.querySelector('.kmusic-player__warning-track-translation')
     el.warningTrackOption = wrapper.querySelector('[data-kmusic-warning-option="track"]')
     el.warningAllOption = wrapper.querySelector('[data-kmusic-warning-option="all"]')
     el.warningBlockButtons = [...wrapper.querySelectorAll('[data-kmusic-warning-action^="block"]')]
@@ -567,6 +577,12 @@
     emit('warningpreferencechange')
   }
 
+  function syncWarningOptionUi() {
+    ;[el.warningTrackOption, el.warningAllOption].forEach(option => {
+      option.closest('.kmusic-player__warning-option')?.classList.toggle('is-selected', option.checked)
+    })
+  }
+
   function requestWarningConfirmation(track) {
     if (!isWarningTrack(track)) return Promise.resolve('play')
     if (state.warningDialogPromise && state.warningDialogTrackId === track.id) return state.warningDialogPromise
@@ -575,8 +591,16 @@
     state.warningDialogTrackId = track.id
     state.warningPreviousFocus = document.activeElement
     el.warningTrack.textContent = track.title
+    el.warningTrack.title = track.title
+    el.warningCover.src = assetUrl(coverPath(track))
+    el.warningCover.alt = `${track.title} 封面`
+    const translatedTitle = String(track.translatedTitle || '').trim()
+    el.warningTrackTranslation.textContent = translatedTitle
+    el.warningTrackTranslation.title = translatedTitle
+    el.warningTrackTranslation.hidden = !translatedTitle
     el.warningTrackOption.checked = false
     el.warningAllOption.checked = false
+    syncWarningOptionUi()
     el.warningBlockButtons.forEach(button => { button.hidden = !CONTENT_SAFETY_DEMO.blockingEnabled })
     el.warningBackdrop.hidden = false
     state.warningDialogPromise = new Promise(resolve => { state.warningDialogResolve = resolve })
@@ -624,10 +648,12 @@
 
     el.warningTrackOption.addEventListener('change', () => {
       if (el.warningTrackOption.checked) el.warningAllOption.checked = false
+      syncWarningOptionUi()
     })
 
     el.warningAllOption.addEventListener('change', () => {
       if (el.warningAllOption.checked) el.warningTrackOption.checked = false
+      syncWarningOptionUi()
     })
 
     el.queueList.addEventListener('click', event => {

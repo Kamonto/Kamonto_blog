@@ -257,6 +257,12 @@
     elements.playSelected = document.getElementById('kmusic-play-selected')
     elements.addSelected = document.getElementById('kmusic-add-selected')
     elements.replaceQueue = document.getElementById('kmusic-replace-queue')
+    elements.blockSelected = document.getElementById('kmusic-block-selected')
+    elements.unblockSelected = document.getElementById('kmusic-unblock-selected')
+    elements.safetyControls = document.getElementById('kmusic-safety-controls')
+    elements.safetyStatus = document.getElementById('kmusic-safety-status')
+    elements.resetWarnings = document.getElementById('kmusic-reset-warnings')
+    elements.unblockAll = document.getElementById('kmusic-unblock-all')
     elements.clearQueue = document.getElementById('kmusic-clear-queue')
     elements.queue = document.getElementById('kmusic-page-queue')
     elements.toast = document.getElementById('kmusic-page-toast')
@@ -738,10 +744,14 @@
 
   function renderTracks() {
     elements.resultCount.textContent = `${state.filtered.length} 首结果 · 已选择 ${state.selected.size} 首`
-    const hasSelection = state.selected.size > 0
-    elements.playSelected.disabled = !hasSelection
-    elements.addSelected.disabled = !hasSelection
-    elements.replaceQueue.disabled = !hasSelection
+    const selected = selectedIds()
+    const selectedBlocked = selected.filter(isBlocked)
+    const selectedPlayable = selected.filter(id => !isBlocked(id))
+    elements.playSelected.disabled = !selectedPlayable.length
+    elements.addSelected.disabled = !selectedPlayable.length
+    elements.replaceQueue.disabled = !selectedPlayable.length
+    if (elements.blockSelected) elements.blockSelected.disabled = !selectedPlayable.length
+    if (elements.unblockSelected) elements.unblockSelected.disabled = !selectedBlocked.length
 
     const page = paginate(elements.trackPagination, state.filtered.length, 'trackPage', 'trackPageSize')
     if (!state.filtered.length) {
@@ -751,12 +761,14 @@
 
     elements.grid.innerHTML = state.filtered.slice(page.start, page.end).map(track => {
       const selected = state.selected.has(track.id)
+      const blocked = isBlocked(track.id)
       const translatedTitle = text(track.translatedTitle)
       const singers = formatPeople(track.singers || track.artists) || '未知歌手'
       const authors = formatPeople(track.authors || track.composers || track.author) || '未知作者'
       const tags = visibleTagsFor(track)
       return `
-        <article class="kmusic-library__track-card${selected ? ' is-selected' : ''}" data-track-id="${escapeHtml(track.id)}" tabindex="0" role="option" aria-selected="${selected}">
+        <article class="kmusic-library__track-card${selected ? ' is-selected' : ''}${blocked ? ' is-blocked' : ''}" data-track-id="${escapeHtml(track.id)}" tabindex="0" role="option" aria-selected="${selected}" aria-disabled="${blocked}">
+          ${blocked ? '<span class="kmusic-library__blocked-badge"><i class="fas fa-ban"></i> 已屏蔽</span>' : ''}
           <input class="kmusic-library__check" type="checkbox" aria-label="选择 ${escapeHtml(track.title)}" ${selected ? 'checked' : ''}>
           <img class="kmusic-library__cover" src="${escapeHtml(assetUrl(coverPath(track)))}" alt="${escapeHtml(track.title)} 封面" loading="lazy">
           <div class="kmusic-library__track-main">
@@ -769,8 +781,9 @@
             ${tags.map(tag => `<button type="button" class="kmusic-library__tag" data-tag-filter="${escapeHtml(tag)}" title="搜索标签：${escapeHtml(tag)}">${escapeHtml(tag)}</button>`).join('')}
           </div>` : ''}
           <div class="kmusic-library__track-actions">
-            <button type="button" class="kmusic-library__button" data-action="play"><i class="fas fa-play"></i> 播放</button>
-            <button type="button" class="kmusic-library__button" data-action="add"><i class="fas fa-plus"></i> 加入队列</button>
+            <button type="button" class="kmusic-library__button" data-action="play" ${blocked ? 'disabled' : ''}><i class="fas fa-play"></i> 播放</button>
+            <button type="button" class="kmusic-library__button" data-action="add" ${blocked ? 'disabled' : ''}><i class="fas fa-plus"></i> 加入队列</button>
+            <button type="button" class="kmusic-library__button${blocked ? '' : ' kmusic-library__button--danger'}" data-action="toggle-block"><i class="fas fa-${blocked ? 'unlock-alt' : 'ban'}"></i> ${blocked ? '取消屏蔽' : '屏蔽'}</button>
           </div>
         </article>`
     }).join('')
@@ -809,11 +822,19 @@
         if (!player) return showToast('播放器仍在初始化，请稍后再试。')
 
         if (button.dataset.action === 'play') {
-          player.playTrack(id)
-          showToast(`开始播放：${state.trackMap.get(id)?.title || id}`)
+          if (!player.playTrack(id)) return showToast('这首歌曲已被屏蔽，无法播放。')
+          showToast(`准备播放：${state.trackMap.get(id)?.title || id}`)
         } else if (button.dataset.action === 'add') {
-          player.addToQueue([id])
-          showToast('已加入播放队列。')
+          const added = player.addToQueue([id])
+          showToast(added ? '已加入播放队列。' : '这首歌曲已被屏蔽或已经在队列中。')
+        } else if (button.dataset.action === 'toggle-block') {
+          if (isBlocked(id)) {
+            player.unblockTracks([id])
+            showToast(`已取消屏蔽：${state.trackMap.get(id)?.title || id}`)
+          } else {
+            player.blockTracks([id])
+            showToast(`已屏蔽：${state.trackMap.get(id)?.title || id}`)
+          }
         }
         return
       }
@@ -842,24 +863,62 @@
       const ids = selectedIds()
       const player = getPlayer()
       if (!player || !ids.length) return
-      player.setQueue(ids, { playIndex: 0, autoplay: true })
-      showToast(`已创建包含 ${ids.length} 首歌曲的队列并开始播放。`)
+      const playable = ids.filter(id => !isBlocked(id))
+      if (!playable.length) return showToast('已选择的歌曲均被屏蔽，无法播放。')
+      const queue = player.setQueue(playable, { playIndex: 0, autoplay: true })
+      const skipped = ids.length - queue.length
+      showToast(`已创建包含 ${queue.length} 首歌曲的队列${skipped ? `，跳过 ${skipped} 首屏蔽歌曲` : ''}。`)
     })
 
     elements.addSelected.addEventListener('click', () => {
       const ids = selectedIds()
       const player = getPlayer()
       if (!player || !ids.length) return
-      const added = player.addToQueue(ids)
-      showToast(added ? `已添加 ${added} 首歌曲。` : '这些歌曲已经在队列中。')
+      const playable = ids.filter(id => !isBlocked(id))
+      const added = player.addToQueue(playable)
+      const skipped = ids.length - playable.length
+      showToast(added
+        ? `已添加 ${added} 首歌曲${skipped ? `，跳过 ${skipped} 首屏蔽歌曲` : ''}。`
+        : skipped ? '已选择的歌曲均被屏蔽或已经在队列中。' : '这些歌曲已经在队列中。')
     })
 
     elements.replaceQueue.addEventListener('click', () => {
       const ids = selectedIds()
       const player = getPlayer()
       if (!player || !ids.length) return
-      player.setQueue(ids, { playIndex: 0, autoplay: false })
-      showToast(`已用 ${ids.length} 首歌曲替换播放队列。`)
+      const playable = ids.filter(id => !isBlocked(id))
+      if (!playable.length) return showToast('已选择的歌曲均被屏蔽，无法替换队列。')
+      const queue = player.setQueue(playable, { playIndex: 0, autoplay: false })
+      const skipped = ids.length - queue.length
+      showToast(`已用 ${queue.length} 首歌曲替换播放队列${skipped ? `，跳过 ${skipped} 首屏蔽歌曲` : ''}。`)
+    })
+
+    elements.blockSelected?.addEventListener('click', () => {
+      const player = getPlayer()
+      if (!player) return
+      const blocked = player.blockTracks(selectedIds())
+      showToast(blocked ? `已屏蔽 ${blocked} 首歌曲，并从播放队列中移除。` : '所选歌曲已经全部屏蔽。')
+    })
+
+    elements.unblockSelected?.addEventListener('click', () => {
+      const player = getPlayer()
+      if (!player) return
+      const unblocked = player.unblockTracks(selectedIds())
+      showToast(unblocked ? `已取消屏蔽 ${unblocked} 首歌曲。` : '所选歌曲没有被屏蔽。')
+    })
+
+    elements.resetWarnings?.addEventListener('click', () => {
+      const player = getPlayer()
+      if (!player) return
+      const changed = player.resetWarningPreferences()
+      showToast(changed ? '已恢复所有歌曲的播放前警告。' : '播放前警告已经处于启用状态。')
+    })
+
+    elements.unblockAll?.addEventListener('click', () => {
+      const player = getPlayer()
+      if (!player) return
+      const unblocked = player.unblockAllTracks()
+      showToast(unblocked ? `已取消屏蔽全部 ${unblocked} 首歌曲。` : '当前没有被屏蔽的歌曲。')
     })
 
     elements.clearQueue.addEventListener('click', () => {
@@ -875,9 +934,42 @@
     return state.player
   }
 
+  function isBlocked(id) {
+    const player = getPlayer()
+    return Boolean(player && typeof player.isTrackBlocked === 'function' && player.isTrackBlocked(id))
+  }
+
+  function renderSafetyControls() {
+    const player = getPlayer()
+    const safety = player && typeof player.getSafetyState === 'function' ? player.getSafetyState() : null
+    const enabled = Boolean(safety?.enabled && (safety?.warningEnabled || safety?.blockingEnabled))
+    if (!elements.safetyControls) return
+    elements.safetyControls.hidden = !enabled
+    if (!enabled) return
+
+    const blockedCount = safety.blockedTrackIds.length
+    const warningStatus = safety.warningEnabled
+      ? safety.warningsDisabled
+        ? '所有播放前警告已关闭'
+        : safety.warningDismissedTrackIds.length
+          ? `已对 ${safety.warningDismissedTrackIds.length} 首歌曲关闭警告`
+          : '播放前警告已启用'
+      : '播放前警告功能已关闭'
+    elements.safetyStatus.textContent = `已屏蔽 ${blockedCount} 首 · ${warningStatus}`
+    if (elements.blockSelected) elements.blockSelected.hidden = !safety.blockingEnabled
+    if (elements.unblockSelected) elements.unblockSelected.hidden = !safety.blockingEnabled
+    if (elements.resetWarnings) elements.resetWarnings.hidden = !safety.warningEnabled
+    if (elements.unblockAll) {
+      elements.unblockAll.hidden = !safety.blockingEnabled
+      elements.unblockAll.disabled = blockedCount === 0
+    }
+  }
+
   function connectPlayer() {
     const player = getPlayer()
     if (!player) return false
+    renderSafetyControls()
+    renderTracks()
     renderQueue({ followCurrent: true })
     return true
   }
@@ -952,6 +1044,12 @@
     window.addEventListener('kmusic:ready', () => connectPlayer(), { signal })
     window.addEventListener('kmusic:queuechange', () => renderQueue(), { signal })
     window.addEventListener('kmusic:trackchange', () => renderQueue({ followCurrent: true }), { signal })
+    window.addEventListener('kmusic:blockingchange', () => {
+      renderTracks()
+      renderSafetyControls()
+      renderQueue()
+    }, { signal })
+    window.addEventListener('kmusic:warningpreferencechange', () => renderSafetyControls(), { signal })
   }
 
   function showToast(message) {

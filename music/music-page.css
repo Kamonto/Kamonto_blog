@@ -552,6 +552,50 @@
   margin-top: 16px;
 }
 
+.kmusic-library__safety-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 11px 13px;
+  border: 1px solid rgba(57, 197, 187, 0.24);
+  border-radius: 13px;
+  background: rgba(57, 197, 187, 0.07);
+}
+
+.kmusic-library__safety-bar[hidden] {
+  display: none;
+}
+
+.kmusic-library__safety-copy,
+.kmusic-library__safety-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.kmusic-library__safety-copy {
+  min-width: 0;
+  color: var(--library-muted);
+  font-size: 12px;
+}
+
+.kmusic-library__safety-copy i {
+  color: var(--library-accent-strong);
+  font-size: 15px;
+}
+
+.kmusic-library__safety-actions {
+  flex: 0 0 auto;
+}
+
+.kmusic-library__safety-actions .kmusic-library__button {
+  min-height: 32px;
+  padding: 5px 9px;
+  font-size: 11px;
+}
+
 .kmusic-library__button {
   display: inline-flex;
   min-height: 38px;
@@ -597,6 +641,10 @@
   cursor: not-allowed;
 }
 
+.kmusic-library__button[hidden] {
+  display: none;
+}
+
 .kmusic-library__result-count {
   margin-left: auto;
   color: var(--library-muted);
@@ -638,6 +686,37 @@
 .kmusic-library__track-card.is-selected {
   border-color: var(--library-accent);
   box-shadow: 0 0 0 3px rgba(57, 197, 187, 0.14);
+}
+
+.kmusic-library__track-card.is-blocked {
+  border-color: rgba(102, 111, 119, 0.3);
+  background: rgba(110, 119, 126, 0.1);
+  box-shadow: none;
+}
+
+.kmusic-library__track-card.is-blocked .kmusic-library__cover,
+.kmusic-library__track-card.is-blocked .kmusic-library__track-main,
+.kmusic-library__track-card.is-blocked .kmusic-library__tag-list {
+  filter: grayscale(1);
+  opacity: 0.46;
+}
+
+.kmusic-library__blocked-badge {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(70, 78, 85, 0.9);
+  box-shadow: 0 4px 12px rgba(31, 38, 43, 0.2);
+  font-size: 10px;
+  font-weight: 700;
+  pointer-events: none;
 }
 
 .kmusic-library__check {
@@ -695,7 +774,10 @@
 }
 
 .kmusic-library__track-actions {
+  position: relative;
+  z-index: 2;
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   grid-column: 1 / -1;
   margin-top: -4px;
@@ -996,6 +1078,15 @@
   .kmusic-library__result-count {
     width: 100%;
     margin-left: 0;
+  }
+
+  .kmusic-library__safety-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .kmusic-library__safety-actions {
+    flex-wrap: wrap;
   }
 
   .kmusic-library__queue-item {

@@ -444,6 +444,162 @@ html.kmusic-player-expanded body {
   font-size: 12px;
 }
 
+.kmusic-player__warning-backdrop {
+  position: fixed;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+  background: rgba(12, 18, 23, 0.62);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  pointer-events: auto;
+}
+
+.kmusic-player__warning-backdrop[hidden] {
+  display: none;
+}
+
+.kmusic-player__warning-dialog {
+  display: grid;
+  width: min(560px, 100%);
+  max-height: calc(100vh - 44px);
+  overflow: auto;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--kmusic-border);
+  border-radius: 22px;
+  color: var(--kmusic-text);
+  background: var(--kmusic-panel-solid);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
+}
+
+.kmusic-player__warning-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  color: #b85b20;
+  background: rgba(238, 151, 71, 0.16);
+  font-size: 22px;
+}
+
+.kmusic-player__warning-copy {
+  min-width: 0;
+}
+
+.kmusic-player__warning-eyebrow {
+  margin: 0 0 3px;
+  color: #b85b20;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
+.kmusic-player__warning-copy h2 {
+  margin: 0 0 9px;
+  color: var(--kmusic-text);
+  font-size: clamp(18px, 3vw, 22px);
+  line-height: 1.35;
+}
+
+.kmusic-player__warning-copy p:last-child {
+  margin: 0;
+  color: var(--kmusic-muted);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.kmusic-player__warning-track {
+  color: var(--kmusic-text);
+  font-weight: 700;
+}
+
+.kmusic-player__warning-preferences,
+.kmusic-player__warning-actions {
+  grid-column: 1 / -1;
+}
+
+.kmusic-player__warning-preferences {
+  display: grid;
+  gap: 9px;
+  padding: 13px 15px;
+  border: 1px solid var(--kmusic-border);
+  border-radius: 14px;
+  background: rgba(116, 128, 139, 0.07);
+}
+
+.kmusic-player__warning-preferences label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--kmusic-text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.kmusic-player__warning-preferences input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--kmusic-accent-strong);
+}
+
+.kmusic-player__warning-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.kmusic-player__warning-button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border: 1px solid var(--kmusic-border);
+  border-radius: 11px;
+  color: var(--kmusic-text);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.kmusic-player__warning-button:hover {
+  border-color: var(--kmusic-accent);
+  color: var(--kmusic-accent-strong);
+  background: rgba(57, 197, 187, 0.1);
+  transform: translateY(-1px);
+}
+
+.kmusic-player__warning-button--primary {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, var(--kmusic-accent), var(--kmusic-accent-strong));
+}
+
+.kmusic-player__warning-button--primary:hover {
+  color: #fff;
+  background: linear-gradient(135deg, var(--kmusic-accent), var(--kmusic-accent-strong));
+}
+
+.kmusic-player__warning-button--danger:hover {
+  border-color: #df615b;
+  color: #df615b;
+  background: rgba(223, 97, 91, 0.08);
+}
+
+.kmusic-player__warning-button[hidden] {
+  display: none;
+}
+
 @media (max-width: 900px) {
   :root {
     --kmusic-bar-height: 126px;
@@ -503,6 +659,30 @@ html.kmusic-player-expanded body {
   .kmusic-player__progress-row {
     grid-template-columns: 38px minmax(60px, 1fr) 38px;
     gap: 4px;
+  }
+
+  .kmusic-player__warning-backdrop {
+    padding: 12px;
+  }
+
+  .kmusic-player__warning-dialog {
+    max-height: calc(100vh - 24px);
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .kmusic-player__warning-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    font-size: 18px;
+  }
+
+  .kmusic-player__warning-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 }
 

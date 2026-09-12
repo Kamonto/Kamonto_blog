@@ -4,9 +4,17 @@
   if (window.KMusicPlayer && window.KMusicPlayer.ready) return
 
   const STORAGE_KEY = 'kmusic-player-state-v1'
+  const SAFETY_STORAGE_KEY = 'kmusic-content-safety-v1'
   const LIBRARY_URL = '/Kamonto_blog/audio/music-library.json'
   const MODES = ['list', 'one', 'shuffle']
   const DEFAULT_COVERS = ['/Kamonto_blog/cover/default1.png', '/Kamonto_blog/cover/default2.png']
+  // Demo 总开关：需要临时回滚时将 enabled 改为 false；两个子功能也可单独关闭。
+  const CONTENT_SAFETY_DEMO = Object.freeze({
+    enabled: true,
+    warningEnabled: true,
+    blockingEnabled: true,
+    warningTag: '播放前警告'
+  })
   const MODE_META = {
     list: { label: '列表循环', icon: 'fa-long-arrow-alt-right' },
     one: { label: '单曲循环', icon: 'fa-redo' },
@@ -38,6 +46,14 @@
     shuffleBackHistory: [],
     shuffleForwardHistory: [],
     shuffleQueueKey: '',
+    blockedTrackIds: new Set(),
+    warningDismissedTrackIds: new Set(),
+    warningApprovedTrackIds: new Set(),
+    warningsDisabled: false,
+    warningDialogTrackId: null,
+    warningDialogPromise: null,
+    warningDialogResolve: null,
+    warningPreviousFocus: null,
     initialized: false,
     error: ''
   }
@@ -119,7 +135,64 @@
   function uniqueValidIds(ids) {
     const seen = new Set()
     return (Array.isArray(ids) ? ids : [])
-      .filter(id => state.trackMap.has(id) && !seen.has(id) && seen.add(id))
+      .filter(id => state.trackMap.has(id) && !isTrackBlocked(id) && !seen.has(id) && seen.add(id))
+  }
+
+  function isTrackBlocked(id) {
+    return CONTENT_SAFETY_DEMO.enabled && CONTENT_SAFETY_DEMO.blockingEnabled && state.blockedTrackIds.has(id)
+  }
+
+  function isWarningTrack(track) {
+    return Boolean(
+      CONTENT_SAFETY_DEMO.enabled &&
+      CONTENT_SAFETY_DEMO.warningEnabled &&
+      track &&
+      Array.isArray(track.tags) &&
+      track.tags.includes(CONTENT_SAFETY_DEMO.warningTag)
+    )
+  }
+
+  function warningTrackIds() {
+    return state.library.filter(isWarningTrack).map(track => track.id)
+  }
+
+  function readSafetyPreferences() {
+    if (!CONTENT_SAFETY_DEMO.enabled) return {}
+    try {
+      const saved = JSON.parse(localStorage.getItem(SAFETY_STORAGE_KEY) || '{}')
+      return saved && typeof saved === 'object' ? saved : {}
+    } catch (error) {
+      console.warn('[KMusic] 无法读取播放安全设置。', error)
+      return {}
+    }
+  }
+
+  function hydrateSafetyPreferences(saved) {
+    const validIds = new Set(state.library.map(track => track.id))
+    state.blockedTrackIds = new Set(
+      CONTENT_SAFETY_DEMO.blockingEnabled && Array.isArray(saved.blockedTrackIds)
+        ? saved.blockedTrackIds.filter(id => validIds.has(id))
+        : []
+    )
+    state.warningDismissedTrackIds = new Set(
+      CONTENT_SAFETY_DEMO.warningEnabled && Array.isArray(saved.warningDismissedTrackIds)
+        ? saved.warningDismissedTrackIds.filter(id => validIds.has(id))
+        : []
+    )
+    state.warningsDisabled = CONTENT_SAFETY_DEMO.warningEnabled && saved.warningsDisabled === true
+  }
+
+  function persistSafetyPreferences() {
+    if (!CONTENT_SAFETY_DEMO.enabled) return
+    try {
+      localStorage.setItem(SAFETY_STORAGE_KEY, JSON.stringify({
+        blockedTrackIds: [...state.blockedTrackIds],
+        warningDismissedTrackIds: [...state.warningDismissedTrackIds],
+        warningsDisabled: state.warningsDisabled
+      }))
+    } catch (error) {
+      console.warn('[KMusic] 无法保存播放安全设置。', error)
+    }
   }
 
   function currentTrack() {
@@ -380,6 +453,27 @@
         <div class="kmusic-player__error" hidden></div>
       </section>
 
+      <div class="kmusic-player__warning-backdrop" hidden>
+        <section class="kmusic-player__warning-dialog" role="alertdialog" aria-modal="true" aria-labelledby="kmusic-warning-title" aria-describedby="kmusic-warning-description">
+          <div class="kmusic-player__warning-icon" aria-hidden="true"><i class="fas fa-exclamation-triangle"></i></div>
+          <div class="kmusic-player__warning-copy">
+            <p class="kmusic-player__warning-eyebrow">播放前提示</p>
+            <h2 id="kmusic-warning-title">这首歌曲可能包含令人不适的元素</h2>
+            <p id="kmusic-warning-description">《<span class="kmusic-player__warning-track"></span>》可能包含恐怖、惊吓、强烈音效或其他令人不适的内容。你可以继续播放，或跳到下一首歌曲。</p>
+          </div>
+          <div class="kmusic-player__warning-preferences">
+            <label><input type="checkbox" data-kmusic-warning-option="track"> 此歌曲以后不再提醒</label>
+            <label><input type="checkbox" data-kmusic-warning-option="all"> 任何歌曲都不再提醒</label>
+          </div>
+          <div class="kmusic-player__warning-actions">
+            <button type="button" class="kmusic-player__warning-button kmusic-player__warning-button--primary" data-kmusic-warning-action="play"><i class="fas fa-play"></i> 确认播放</button>
+            <button type="button" class="kmusic-player__warning-button" data-kmusic-warning-action="skip"><i class="fas fa-step-forward"></i> 跳到下一首</button>
+            <button type="button" class="kmusic-player__warning-button kmusic-player__warning-button--danger" data-kmusic-warning-action="block"><i class="fas fa-ban"></i> 屏蔽此歌曲</button>
+            <button type="button" class="kmusic-player__warning-button kmusic-player__warning-button--danger" data-kmusic-warning-action="block-all"><i class="fas fa-shield-alt"></i> 屏蔽所有警告歌曲</button>
+          </div>
+        </section>
+      </div>
+
       <button type="button" class="kmusic-player__toggle" data-kmusic-action="collapse" aria-expanded="true" title="收起播放器">
         <i class="fas fa-chevron-down"></i><span class="kmusic-player__toggle-label">收起播放器</span>
       </button>
@@ -443,6 +537,62 @@
     el.queueCount = wrapper.querySelector('.kmusic-player__queue-count')
     el.libraryLink = wrapper.querySelector('.kmusic-player__library-link')
     el.error = wrapper.querySelector('.kmusic-player__error')
+    el.warningBackdrop = wrapper.querySelector('.kmusic-player__warning-backdrop')
+    el.warningDialog = wrapper.querySelector('.kmusic-player__warning-dialog')
+    el.warningTrack = wrapper.querySelector('.kmusic-player__warning-track')
+    el.warningTrackOption = wrapper.querySelector('[data-kmusic-warning-option="track"]')
+    el.warningAllOption = wrapper.querySelector('[data-kmusic-warning-option="all"]')
+    el.warningBlockButtons = [...wrapper.querySelectorAll('[data-kmusic-warning-action^="block"]')]
+  }
+
+  function finishWarningDialog(action) {
+    if (!state.warningDialogPromise) return
+    const resolve = state.warningDialogResolve
+    const previousFocus = state.warningPreviousFocus
+    state.warningDialogTrackId = null
+    state.warningDialogPromise = null
+    state.warningDialogResolve = null
+    state.warningPreviousFocus = null
+    el.warningBackdrop.hidden = true
+    if (previousFocus && typeof previousFocus.focus === 'function' && document.contains(previousFocus)) previousFocus.focus()
+    resolve(action)
+  }
+
+  function saveWarningDialogPreferences() {
+    if (el.warningAllOption.checked) {
+      state.warningsDisabled = true
+    } else if (el.warningTrackOption.checked && state.warningDialogTrackId) {
+      state.warningDismissedTrackIds.add(state.warningDialogTrackId)
+    }
+    persistSafetyPreferences()
+    emit('warningpreferencechange')
+  }
+
+  function requestWarningConfirmation(track) {
+    if (!isWarningTrack(track)) return Promise.resolve('play')
+    if (state.warningDialogPromise && state.warningDialogTrackId === track.id) return state.warningDialogPromise
+    if (state.warningDialogPromise) finishWarningDialog('skip')
+
+    state.warningDialogTrackId = track.id
+    state.warningPreviousFocus = document.activeElement
+    el.warningTrack.textContent = track.title
+    el.warningTrackOption.checked = false
+    el.warningTrackOption.disabled = false
+    el.warningAllOption.checked = false
+    el.warningBlockButtons.forEach(button => { button.hidden = !CONTENT_SAFETY_DEMO.blockingEnabled })
+    el.warningBackdrop.hidden = false
+    state.warningDialogPromise = new Promise(resolve => { state.warningDialogResolve = resolve })
+    window.requestAnimationFrame(() => el.warningDialog.querySelector('[data-kmusic-warning-action="play"]')?.focus())
+    return state.warningDialogPromise
+  }
+
+  function shouldWarnBeforePlay(track) {
+    return Boolean(
+      isWarningTrack(track) &&
+      !state.warningsDisabled &&
+      !state.warningDismissedTrackIds.has(track.id) &&
+      !state.warningApprovedTrackIds.has(track.id)
+    )
   }
 
   function bindDomEvents() {
@@ -461,6 +611,23 @@
         case 'mute': toggleMute(); break
         case 'clear': clearQueue(); break
       }
+    })
+
+    el.warningBackdrop.addEventListener('click', event => {
+      const actionButton = event.target.closest('[data-kmusic-warning-action]')
+      if (!actionButton) {
+        if (event.target === el.warningBackdrop) finishWarningDialog('skip')
+        return
+      }
+
+      const action = actionButton.dataset.kmusicWarningAction
+      if (action === 'play' || action === 'skip') saveWarningDialogPreferences()
+      finishWarningDialog(action)
+    })
+
+    el.warningAllOption.addEventListener('change', () => {
+      el.warningTrackOption.disabled = el.warningAllOption.checked
+      if (el.warningAllOption.checked) el.warningTrackOption.checked = false
     })
 
     el.queueList.addEventListener('click', event => {
@@ -541,6 +708,11 @@
     })
 
     document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && state.warningDialogPromise) {
+        event.preventDefault()
+        finishWarningDialog('skip')
+        return
+      }
       if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return
       const target = event.target
       const isTyping = target && (target.matches('input, textarea, select') || target.isContentEditable)
@@ -617,7 +789,7 @@
     state.muted = Boolean(saved.muted)
     state.collapsed = Boolean(saved.collapsed)
     state.queue = uniqueValidIds(saved.queue)
-    if (!state.queue.length) state.queue = state.library.map(track => track.id)
+    if (!state.queue.length) state.queue = uniqueValidIds(state.library.map(track => track.id))
 
     const savedTrackIndex = saved.currentTrackId ? state.queue.indexOf(saved.currentTrackId) : -1
     const numericIndex = Number(saved.currentIndex)
@@ -631,6 +803,100 @@
     audio.volume = state.volume
     audio.muted = state.muted
     if (state.mode === 'shuffle') restoreSmartShuffle(saved.shuffleState)
+  }
+
+  function reconcileBlockedQueue() {
+    const previousQueue = [...state.queue]
+    const previousIndex = state.currentIndex
+    const previousCurrentId = previousQueue[previousIndex] || null
+    const wasPlaying = !audio.paused && !audio.ended
+    const queue = previousQueue.filter(id => !isTrackBlocked(id))
+    if (queue.length === previousQueue.length) return false
+
+    let nextId = previousCurrentId && queue.includes(previousCurrentId) ? previousCurrentId : null
+    if (!nextId && queue.length) {
+      for (let offset = 1; offset <= previousQueue.length; offset += 1) {
+        const candidate = previousQueue[(previousIndex + offset) % previousQueue.length]
+        if (queue.includes(candidate)) {
+          nextId = candidate
+          break
+        }
+      }
+    }
+
+    state.queue = queue
+    state.currentIndex = nextId ? queue.indexOf(nextId) : 0
+    if (state.mode === 'shuffle') resetSmartShuffle()
+
+    if (previousCurrentId !== nextId) {
+      loadCurrent({ autoplay: wasPlaying })
+    } else {
+      updateQueueUi()
+      persist(true)
+    }
+    emit('queuechange')
+    return true
+  }
+
+  function blockTracks(ids) {
+    if (!CONTENT_SAFETY_DEMO.enabled || !CONTENT_SAFETY_DEMO.blockingEnabled) return 0
+    const candidates = Array.isArray(ids) ? ids : [ids]
+    let added = 0
+    candidates.forEach(id => {
+      if (state.trackMap.has(id) && !state.blockedTrackIds.has(id)) {
+        state.blockedTrackIds.add(id)
+        added += 1
+      }
+    })
+    if (!added) return 0
+    persistSafetyPreferences()
+    reconcileBlockedQueue()
+    emit('blockingchange', { blockedTrackIds: [...state.blockedTrackIds] })
+    return added
+  }
+
+  function unblockTracks(ids) {
+    if (!CONTENT_SAFETY_DEMO.enabled || !CONTENT_SAFETY_DEMO.blockingEnabled) return 0
+    const candidates = Array.isArray(ids) ? ids : [ids]
+    let removed = 0
+    candidates.forEach(id => {
+      if (state.blockedTrackIds.delete(id)) removed += 1
+    })
+    if (!removed) return 0
+    persistSafetyPreferences()
+    emit('blockingchange', { blockedTrackIds: [...state.blockedTrackIds] })
+    return removed
+  }
+
+  function unblockAllTracks() {
+    return unblockTracks([...state.blockedTrackIds])
+  }
+
+  function blockAllWarningTracks() {
+    return blockTracks(warningTrackIds())
+  }
+
+  function resetWarningPreferences() {
+    const changed = state.warningsDisabled || state.warningDismissedTrackIds.size || state.warningApprovedTrackIds.size
+    state.warningsDisabled = false
+    state.warningDismissedTrackIds.clear()
+    state.warningApprovedTrackIds.clear()
+    persistSafetyPreferences()
+    if (changed) emit('warningpreferencechange')
+    return Boolean(changed)
+  }
+
+  function safetyState() {
+    return {
+      enabled: CONTENT_SAFETY_DEMO.enabled,
+      warningEnabled: CONTENT_SAFETY_DEMO.enabled && CONTENT_SAFETY_DEMO.warningEnabled,
+      blockingEnabled: CONTENT_SAFETY_DEMO.enabled && CONTENT_SAFETY_DEMO.blockingEnabled,
+      warningTag: CONTENT_SAFETY_DEMO.warningTag,
+      warningsDisabled: state.warningsDisabled,
+      warningDismissedTrackIds: [...state.warningDismissedTrackIds],
+      blockedTrackIds: [...state.blockedTrackIds],
+      warningTrackIds: warningTrackIds()
+    }
   }
 
   function loadCurrent(options = {}) {
@@ -673,10 +939,43 @@
   }
 
   async function safePlay() {
-    if (!currentTrack()) {
+    const track = currentTrack()
+    if (!track) {
       setStatus('播放队列为空')
       return false
     }
+    if (isTrackBlocked(track.id)) {
+      reconcileBlockedQueue()
+      setStatus('已跳过屏蔽歌曲')
+      return false
+    }
+
+    if (shouldWarnBeforePlay(track)) {
+      audio.pause()
+      setStatus('等待确认播放')
+      const action = await requestWarningConfirmation(track)
+      if (currentTrack()?.id !== track.id && !['block', 'block-all'].includes(action)) return false
+
+      if (action === 'skip') {
+        setStatus('已跳过警告歌曲')
+        if (state.queue.length > 1 && currentTrack()?.id === track.id) next()
+        return false
+      }
+      if (action === 'block') {
+        blockTracks([track.id])
+        if (currentTrack()) return safePlay()
+        return false
+      }
+      if (action === 'block-all') {
+        blockAllWarningTracks()
+        if (currentTrack()) return safePlay()
+        return false
+      }
+      if (action !== 'play') return false
+      state.warningApprovedTrackIds.add(track.id)
+    }
+
+    if (currentTrack()?.id !== track.id) return false
     try {
       await audio.play()
       return true
@@ -702,7 +1001,7 @@
   }
 
   function playTrack(id, options = {}) {
-    if (!state.trackMap.has(id)) return false
+    if (!state.trackMap.has(id) || isTrackBlocked(id)) return false
     if (options.replaceQueue) {
       state.queue = [id]
       state.currentIndex = 0
@@ -1068,6 +1367,13 @@
       getTrack: id => state.trackMap.has(id) ? { ...state.trackMap.get(id) } : null,
       getQueue: () => [...state.queue],
       getState: publicState,
+      getSafetyState: safetyState,
+      isTrackBlocked,
+      blockTracks,
+      unblockTracks,
+      unblockAllTracks,
+      blockAllWarningTracks,
+      resetWarningPreferences,
       setQueue,
       addToQueue,
       removeFromQueue,
@@ -1120,6 +1426,7 @@
       createPlayerDom()
       bindDomEvents()
       bindAudioEvents()
+      hydrateSafetyPreferences(readSafetyPreferences())
       hydrate(readSavedState())
       updateModeUi()
       updateVolumeUi()

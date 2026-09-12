@@ -277,6 +277,19 @@
 <button type="button" class="kmusic-library__button kmusic-library__button--primary" id="kmusic-play-selected"><i class="fas fa-play"></i> 播放已选</button>
 <button type="button" class="kmusic-library__button" id="kmusic-add-selected"><i class="fas fa-plus"></i> 添加到队列</button>
 <button type="button" class="kmusic-library__button" id="kmusic-replace-queue"><i class="fas fa-list"></i> 用已选歌曲替换队列</button>
+<button type="button" class="kmusic-library__button kmusic-library__button--danger" id="kmusic-block-selected" hidden><i class="fas fa-ban"></i> 屏蔽已选</button>
+<button type="button" class="kmusic-library__button" id="kmusic-unblock-selected" hidden><i class="fas fa-unlock-alt"></i> 取消屏蔽已选</button>
+</div>
+
+<div class="kmusic-library__safety-bar" id="kmusic-safety-controls" hidden>
+<div class="kmusic-library__safety-copy">
+<i class="fas fa-shield-alt"></i>
+<span id="kmusic-safety-status">播放安全设置正在初始化…</span>
+</div>
+<div class="kmusic-library__safety-actions">
+<button type="button" class="kmusic-library__button" id="kmusic-reset-warnings"><i class="fas fa-bell"></i> 恢复警告提示</button>
+<button type="button" class="kmusic-library__button" id="kmusic-unblock-all"><i class="fas fa-unlock"></i> 取消全部屏蔽</button>
+</div>
 </div>
 
 <div id="kmusic-track-grid" class="kmusic-library__track-grid" role="listbox" aria-multiselectable="true" aria-label="歌曲列表">

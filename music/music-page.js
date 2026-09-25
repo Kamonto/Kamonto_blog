@@ -160,12 +160,12 @@
       if (!Array.isArray(record.aliases)) {
         throw new Error(`${tableName} 中 ${record.name} 的 aliases 必须是数组。`)
       }
-      if (!Array.isArray(record.links)) {
+      if (record.links !== undefined && !Array.isArray(record.links)) {
         throw new Error(`${tableName} 中 ${record.name} 的 links 必须是数组。`)
       }
       const translatedName = record.translatedName.trim()
       const aliases = record.aliases.filter(Boolean)
-      const links = [...new Set(record.links.filter(link => typeof link === 'string' && link.trim()).map(link => link.trim()))]
+      const links = [...new Set((record.links || []).filter(link => typeof link === 'string' && link.trim()).map(link => link.trim()))]
       // 允许只登记标准名称的条目：作者已被完整收录，但萌娘百科未记载可用译名或别名时，
       // 仍可保留结构完整的记录；标准名称搜索继续由曲目本身提供，不会产生额外匹配。
       const key = normalize(record.name)
